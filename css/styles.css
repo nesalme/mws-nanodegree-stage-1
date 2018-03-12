@@ -246,14 +246,180 @@ h6 {
 /* =============================================== */
 /* ============= RESTAURANT DETAILS ============== */
 /* =============================================== */
-.inside header {
+.restaurant-details,
+.restaurant-location,
+.reviews {
+  border-bottom: 1px solid #D9D9D9;
+  border-top: 1px solid #FFF;
+  /* padding: 140px 40px 30px; */
+}
+
+.restaurant-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.restaurant-details__name {
+  color: #F18200;
+  font-size: 1.9em;
+  font-weight: 200;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin: 1em 0.2em 0.6em;
+  text-align: center;
+}
+
+.restaurant-details__img {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.restaurant-details__cuisine {
+  background-color: #333;
+  color: #DDD;
+  font-size: 1.2em;
+  font-weight: 300;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  width: 90%;
+  margin: 0 0 1em;
+  padding: 2px 0;
+
+  display: flex;
+  justify-content: center;
+  align-self: center;
+}
+
+.restaurant-details__address {
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+.restaurant-details__hours {
+  font-size: 1.1em;
+  width: 85%;
+  margin-bottom: 1.6em;
+}
+
+.restaurant-details__day {
+  padding: 0.08em 0.08em 0.08em 0.5em;
+  font-weight: 600;
+  color: #757575;
+}
+
+.restaurant-details__time {
+  text-align: center;
+}
+
+.restaurant-location__map {
+  height: 15em;
+  width: 100%;
+  background-color: #ccc;
+}
+
+.reviews {
+  padding: 2em 1.5em;
+}
+
+.reviews__heading {
+  color: #F58500;
+  font-size: 1.8em;
+  font-weight: 300;
+  letter-spacing: -1px;
+}
+
+.reviews__item {
+  background-color: #FFF;
+  border: 2px solid #F3F3F3;
+  border-radius: 5px;
+  display: block;
+  list-style: none;
+  margin: 0 0 2em;
+  overflow: hidden;
+  padding: 0.8em 1.2em;
+  position: relative;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.reviews__item:last-child {
+  margin: 0;
+}
+
+.review__author {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #757575;
+  line-height: 1.1;
+  flex-grow: 1;
+  flex-basis: 10em;
+}
+
+.review__date {
+  font-size: 0.8em;
+  color: #757575;
+}
+
+.review__rating {
+  font-size: 0.95em;
+  font-weight: 600;
+  /* color: #F58500; */
+  color: #3397db;
+  text-align: right;
+  flex-grow: 1;
+  line-height: 0;
+}
+.review__comments {
+  margin-top: 0.5em;
+}
+
+/* .inside header {
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1000;
 }
 
-.inside #map-container {
+/* ========== NAVIGATION ========== */
+/* .breadcrumb {
+  padding: 10px 40px 16px;
+  list-style: none;
+  background-color: #eee;
+  font-size: 17px;
+  margin: 0;
+  width: calc(50% - 80px);
+} */
+
+/* Display list items side by side */
+/* #breadcrumb li {
+    display: inline;
+}
+ */
+/* Add a slash symbol (/) before/behind each list item */
+/* #breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+} */
+
+/* Add a color to all links inside the list */
+/* #breadcrumb li a {
+    color: #0275d8;
+    text-decoration: none;
+} */
+
+/* Add a color on mouse-over */
+/* #breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
+} */
+
+/* .inside #map-container {
   background: blue none repeat scroll 0 0;
   height: 87%;
   position: fixed;
@@ -350,20 +516,11 @@ h6 {
 
 #restaurant-hours td {
   color: #666;
-}
+} */
 
 /* =================================================== */
 /* ================== MEDIA QUERIES ================== */
 /* =================================================== */
-@media screen and (min-width: 350px) {
-  .restaurant__card {}
-  .restaurant__img {}
-  .restaurant__name {}
-  .restaurant__neighborhood {}
-  .restaurant__address {}
-  .restaurant__more {}
-}
-
 @media screen and (min-width: 425px) {
   .filter__options {
     flex-direction: row;
@@ -406,40 +563,6 @@ h6 {
 }
 
 @media screen and (min-width: 600px) {
-  /* ========== NAVIGATION ========== */
-  .breadcrumb {
-    padding: 10px 40px 16px;
-    list-style: none;
-    background-color: #eee;
-    font-size: 17px;
-    margin: 0;
-    width: calc(50% - 80px);
-  }
-
-  /* Display list items side by side */
-  #breadcrumb li {
-      display: inline;
-  }
-
-  /* Add a slash symbol (/) before/behind each list item */
-  #breadcrumb li+li:before {
-      padding: 8px;
-      color: black;
-      content: "/\00a0";
-  }
-
-  /* Add a color to all links inside the list */
-  #breadcrumb li a {
-      color: #0275d8;
-      text-decoration: none;
-  }
-
-  /* Add a color on mouse-over */
-  #breadcrumb li a:hover {
-      color: #01447e;
-      text-decoration: underline;
-  }
-
   /* ======== RESTAURANT FILTERS ======= */
   .filter__options {
     justify-content: flex-end;
