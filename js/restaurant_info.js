@@ -1,5 +1,4 @@
-let restaurant;
-var map;
+let restaurant, map;
 
 /**
  * Initialize Google map, called from HTML.
@@ -25,12 +24,12 @@ window.initMap = () => {
  */
 fetchRestaurantFromURL = (callback) => {
   if (self.restaurant) { // restaurant already fetched!
-    callback(null, self.restaurant)
+    callback(null, self.restaurant);
     return;
   }
   const id = getParameterByName('id');
   if (!id) { // no id found in URL
-    error = 'No restaurant id in URL'
+    error = 'No restaurant id in URL';
     callback(error, null);
   } else {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
@@ -40,7 +39,7 @@ fetchRestaurantFromURL = (callback) => {
         return;
       }
       fillRestaurantHTML();
-      callback(null, restaurant)
+      callback(null, restaurant);
     });
   }
 }
@@ -55,7 +54,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 
   const address = document.getElementById('restaurant-address');
   address.className = 'restaurant-details__address';
-  address.innerHTML = restaurant.address;
+  address.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
 
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-details__img';
@@ -80,15 +79,16 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
   const hours = document.getElementById('restaurant-hours');
   for (let key in operatingHours) {
     const row = document.createElement('tr');
+    row.className = 'opening-hours__row';
 
     const day = document.createElement('td');
-    day.className = 'restaurant-details__day';
+    day.className = 'opening-hours__day';
     day.innerHTML = key;
     row.appendChild(day);
 
     const time = document.createElement('td');
-    time.className = 'restaurant-details__time';
-    time.innerHTML = operatingHours[key];
+    time.className = 'opening-hours__time';
+    time.innerHTML = operatingHours[key].replace(/ *, */g, '<br>');
     row.appendChild(time);
 
     hours.appendChild(row);
