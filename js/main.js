@@ -1,8 +1,4 @@
-let restaurants,
-  neighborhoods,
-  cuisines
-var map
-var markers = []
+let restaurants, neighborhoods, cuisines, map, markers;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -30,12 +26,12 @@ fetchNeighborhoods = () => {
  * Set neighborhoods HTML.
  */
 fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
-  const select = document.getElementById('neighborhoods-select');
+  const SELECT = document.getElementById('filter__neighborhood');
   neighborhoods.forEach(neighborhood => {
-    const option = document.createElement('option');
-    option.innerHTML = neighborhood;
-    option.value = neighborhood;
-    select.append(option);
+    const OPTION = document.createElement('option');
+    OPTION.innerHTML = neighborhood;
+    OPTION.value = neighborhood;
+    SELECT.append(OPTION);
   });
 }
 
@@ -57,13 +53,13 @@ fetchCuisines = () => {
  * Set cuisines HTML.
  */
 fillCuisinesHTML = (cuisines = self.cuisines) => {
-  const select = document.getElementById('cuisines-select');
+  const SELECT = document.getElementById('filter__cuisine');
 
   cuisines.forEach(cuisine => {
-    const option = document.createElement('option');
-    option.innerHTML = cuisine;
-    option.value = cuisine;
-    select.append(option);
+    const OPTION = document.createElement('option');
+    OPTION.innerHTML = cuisine;
+    OPTION.value = cuisine;
+    SELECT.append(OPTION);
   });
 }
 
@@ -87,16 +83,16 @@ window.initMap = () => {
  * Update page and map for current restaurants.
  */
 updateRestaurants = () => {
-  const cSelect = document.getElementById('cuisines-select');
-  const nSelect = document.getElementById('neighborhoods-select');
+  const C_SELECT = document.getElementById('filter__cuisine');
+  const N_SELECT = document.getElementById('filter__neighborhood');
 
-  const cIndex = cSelect.selectedIndex;
-  const nIndex = nSelect.selectedIndex;
+  const C_INDEX = C_SELECT.selectedIndex;
+  const N_INDEX = N_SELECT.selectedIndex;
 
-  const cuisine = cSelect[cIndex].value;
-  const neighborhood = nSelect[nIndex].value;
+  const CUISINE = C_SELECT[C_INDEX].value;
+  const NEIGHBORHOOD = N_SELECT[N_INDEX].value;
 
-  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
+  DBHelper.fetchRestaurantByCuisineAndNeighborhood(CUISINE, NEIGHBORHOOD, (error, restaurants) => {
     if (error) { // Got an error!
       console.error(error);
     } else {
@@ -112,10 +108,14 @@ updateRestaurants = () => {
 resetRestaurants = (restaurants) => {
   // Remove all restaurants
   self.restaurants = [];
-  const ul = document.getElementById('restaurants__list');
-  ul.innerHTML = '';
+  const UL = document.getElementById('restaurants__list');
+  UL.innerHTML = '';
 
   // Remove all map markers
+  if (self.markers === undefined) {
+    self.markers = [];
+  }
+
   self.markers.forEach(m => m.setMap(null));
   self.markers = [];
   self.restaurants = restaurants;
@@ -125,9 +125,9 @@ resetRestaurants = (restaurants) => {
  * Create all restaurants HTML and add them to the webpage.
  */
 fillRestaurantsHTML = (restaurants = self.restaurants) => {
-  const ul = document.getElementById('restaurants__list');
+  const UL = document.getElementById('restaurants__list');
   restaurants.forEach(restaurant => {
-    ul.append(createRestaurantHTML(restaurant));
+    UL.append(createRestaurantHTML(restaurant));
   });
   addMarkersToMap();
 }
@@ -136,37 +136,37 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
  * Create restaurant HTML.
  */
 createRestaurantHTML = (restaurant) => {
-  const li = document.createElement('li');
-  li.className = 'restaurant__card';
+  const LI = document.createElement('li');
+  LI.className = 'restaurant__card';
 
-  const image = document.createElement('img');
-  image.className = 'restaurant__img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  image.srcset
-  li.append(image);
+  const IMAGE = document.createElement('img');
+  IMAGE.className = 'restaurant__img';
+  IMAGE.src = DBHelper.imageUrlForRestaurant(restaurant);
+  IMAGE.srcset
+  LI.append(IMAGE);
 
-  const name = document.createElement('h3');
-  name.className = 'restaurant__name';
-  name.innerHTML = restaurant.name;
-  li.append(name);
+  const NAME = document.createElement('h3');
+  NAME.className = 'restaurant__name';
+  NAME.innerHTML = restaurant.name;
+  LI.append(NAME);
 
-  const neighborhood = document.createElement('h4');
-  neighborhood.className = 'restaurant__neighborhood';
-  neighborhood.innerHTML = restaurant.neighborhood;
-  li.append(neighborhood);
+  const NEIGHBORHOOD = document.createElement('h4');
+  NEIGHBORHOOD.className = 'restaurant__neighborhood';
+  NEIGHBORHOOD.innerHTML = restaurant.neighborhood;
+  LI.append(NEIGHBORHOOD);
 
-  const address = document.createElement('p');
-  address.className = 'restaurant__address';
-  address.innerHTML = restaurant.address;
-  li.append(address);
+  const ADDRESS = document.createElement('p');
+  ADDRESS.className = 'restaurant__address';
+  ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>');
+  LI.append(ADDRESS);
 
-  const more = document.createElement('a');
-  more.className = 'restaurant__more';
-  more.innerHTML = 'View Details';
-  more.href = DBHelper.urlForRestaurant(restaurant);
-  li.append(more);
+  const MORE = document.createElement('a');
+  MORE.className = 'restaurant__more';
+  MORE.innerHTML = 'View Details';
+  MORE.href = DBHelper.urlForRestaurant(restaurant);
+  LI.append(MORE);
 
-  return li;
+  return LI;
 }
 
 /**
@@ -175,10 +175,10 @@ createRestaurantHTML = (restaurant) => {
 addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
-    const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
-    google.maps.event.addListener(marker, 'click', () => {
-      window.location.href = marker.url
+    const MARKER = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
+    google.maps.event.addListener(MARKER, 'click', () => {
+      window.location.href = MARKER.url;
     });
-    self.markers.push(marker);
+    self.markers.push(MARKER);
   });
 }

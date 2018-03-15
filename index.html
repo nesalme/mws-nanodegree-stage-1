@@ -22,8 +22,8 @@
     </nav>
   </header>
 
-  <main class="main" id="maincontent">
-    <section class="location" id="map-container">
+  <main class="main">
+    <section class="location">
       <div class="location__map" id="map"></div>
     </section>
 
@@ -31,11 +31,11 @@
       <div class="filter-options filter__options">
         <h2 class="filter__heading">Filter Results</h2>
 
-        <select class="filter__neighborhood" id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()">
+        <select class="filter__neighborhood" id="filter__neighborhood" name="neighborhoods" onchange="updateRestaurants()">
           <option value="all">All Neighborhoods</option>
         </select>
 
-        <select class="filter__cuisine" id="cuisines-select" name="cuisines" onchange="updateRestaurants()">
+        <select class="filter__cuisine" id="filter__cuisine" name="cuisines" onchange="updateRestaurants()">
           <option value="all">All Cuisines</option>
         </select>
       </div>
@@ -44,7 +44,7 @@
     </section>
   </main>
 
-  <footer class="footer" id="footer">
+  <footer class="footer">
     Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
   </footer>
 
