@@ -280,10 +280,15 @@ h6 {
   text-align: center;
 }
 
-.restaurant-details__img {
+.restaurant__picture {
   width: 90%;
   height: 40vmax;
   margin: 0 auto;
+}
+
+.restaurant-details__img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -593,9 +598,8 @@ h6 {
     margin: 0 0 0 1em;
   }
 
-  .restaurant__img {
+  .restaurant__picture {
     grid-area: img;
-    height: 100%;
   }
 
   .restaurant__name {

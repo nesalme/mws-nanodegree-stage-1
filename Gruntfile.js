@@ -13,25 +13,61 @@ module.exports = function(grunt) {
     responsive_images: {
       dev: {
         options: {
-          engine: 'gm', // Using GraphicsMagick (to use ImageMagick, replace with 'im')
+          engine: 'im', // Using ImageMagick (to use GraphicsMagick, replace with 'gm')
           sizes: [
-            { name: 'small',  separator: '_', suffix: '_1x', quality: 60, width: 600  },
-            { name: 'small',  separator: '_', suffix: '_2x', quality: 60, width: 1200 },
-            { name: 'medium', separator: '_', suffix: '_2x', quality: 60, width: 900  },
-            { name: 'medium', separator: '_', suffix: '_1x', quality: 60, width: 1800 },
-            { name: 'large',  separator: '_', suffix: '_1x', quality: 60, width: 1440 },
-            { name: 'large',  separator: '_', suffix: '_2x', quality: 60, width: 2880 }
+            {
+              name: 'small',
+              width: 400,
+              suffix: '@1x',
+              separator: '_',
+              quality: 60
+            },
+            {
+              name: 'small',
+              width: 800,
+              suffix: '@2x',
+              separator: '_',
+              quality: 60
+            },
+            {
+              name: 'medium',
+              width: 600,
+              separator: '_',
+              quality: 60
+            },
+            {
+              name: 'large',
+              width: 800,
+              separator: '_',
+              quality: 60
+            }
           ],
         },
         files: [
           {
             expand: true,
             src:    ['**/*.{jpg,png}'],
-            cwd:    'images_src/',
-            dest:   'images/'
+            cwd:    'img_src/',
+            dest:   'img/'
           }
         ],
       },
+    },
+
+    /* Clean out the images directory if it exists (after running responsive-images) */
+    clean: {
+      dev: {
+        src: ['img'],
+      },
+    },
+
+    /* Generate the images directory if  */
+    mkdir: {
+      dev: {
+        options: {
+          create: ['img']
+        }
+      }
     },
 
     /* Convert JPG and PNG images to WebP */
@@ -43,40 +79,24 @@ module.exports = function(grunt) {
         files: [
           {
             expand: true,
-            cwd:    'images/',
+            cwd:    'img/',
             src:    ['**/*.{jpg,png}'],
-            dest:   'images/'
+            dest:   'img/'
           }
         ]
       }
-    },
-
-    /* Clean out the images directory if it exists (after running responsive-images) */
-    clean: {
-      dev: {
-        src: ['images'],
-      },
-    },
-
-    /* Generate the images directory if  */
-    mkdir: {
-      dev: {
-        options: {
-          create: ['images']
-        }
-      }
-    },
+    }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-cwebp');
-  grunt.loadNpmTasks('grunt-mkdir');
   grunt.loadNpmTasks('grunt-responsive-images');
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-mkdir');
+  grunt.loadNpmTasks('grunt-cwebp');
 
   grunt.registerTask('default', [
     'clean',
-    'cwebp',
     'mkdir',
-    'responsive_images'
+    'responsive_images',
+    'cwebp'
   ]);
 };

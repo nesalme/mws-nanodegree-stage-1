@@ -55,8 +55,38 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const ADDRESS = document.getElementById('restaurant-details__address');
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
 
-  const IMAGE = document.getElementById('restaurant-details__img');
-  IMAGE.src = DBHelper.imageUrlForRestaurant(restaurant);
+  const PICTURE = document.getElementById('restaurant__picture');
+  const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
+  // console.log(PICTURE_URL);
+  PICTURE.innerHTML =
+    `<source
+      media="(min-width: 1200px)"
+      srcset="${PICTURE_URL}_large.webp"
+      sizes="45vw"
+      type="image/webp">` +
+    `<source
+      media="(min-width: 440px)"
+      srcset="${PICTURE_URL}_medium.webp"
+      sizes="(min-width: 650px) 50vw, 85vw"
+      type="image/webp">` +
+    `<source
+      srcset="${PICTURE_URL}_small@1x.webp 1x,
+              ${PICTURE_URL}_small@2x.webp 2x"
+      type="image/webp">` +
+    `<source
+      media="(min-width: 1280px)"
+      srcset="${PICTURE_URL}_large.jpg"
+      sizes="45vw">` +
+    `<source
+      media="(min-width: 440px)"
+      srcset="${PICTURE_URL}_medium.jpg"
+      sizes="(min-width: 650px) 50vw, 85vw">` +
+    `<img
+      class="restaurant-details__img"
+      id="restaurant-details__img"
+      srcset="${PICTURE_URL}_small@1x.jpg 1x,
+              ${PICTURE_URL}_small@2x.jpg 2x"
+      src="${PICTURE_URL}_small@1x.jpg.jpg">`;
 
   const CUISINE = document.getElementById('restaurant-details__cuisine');
   CUISINE.innerHTML = restaurant.cuisine_type;
