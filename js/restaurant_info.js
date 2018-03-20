@@ -83,6 +83,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     `<img
       class="restaurant-details__img"
       id="restaurant-details__img"
+      alt="The ${restaurant.name} restaurant"
       srcset="${PICTURE_URL}_small@1x.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
       src="${PICTURE_URL}_small@1x.jpg">`;

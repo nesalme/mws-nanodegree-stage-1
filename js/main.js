@@ -149,6 +149,7 @@ createRestaurantHTML = (restaurant) => {
       type="image/webp">` +
     `<img
       class="restaurant__img"
+      alt="The ${restaurant.name} restaurant"
       srcset="${PICTURE_URL}_small@1x.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
       src="${PICTURE_URL}_small@1x.jpg">`;
