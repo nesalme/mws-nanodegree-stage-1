@@ -21,7 +21,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
   color: #333;
-  background-color: #fdfdfd;
+  background-color: #FDFDFD;
   min-height: 100%;
   position: relative;
 
@@ -49,12 +49,12 @@ a {
 
 a:hover,
 a:focus {
-	color: #3397db;
+	color: #3397DB;
 	text-decoration: none;
 }
 
 a img {
-	border: none 0px #fff;
+	border: none 1px #FFF;
 }
 
 h1,
@@ -73,17 +73,17 @@ h6 {
 }
 
 .main {
-  background-color: #f3f3f3;
+  background-color: #F3F3F3;
   min-height: 100%;
   width: 100%;
 }
 
 .footer {
   background-color: #444;
-  color: #aaa;
+  color: #AAA;
   font-size: 8pt;
   letter-spacing: 1px;
-  padding: 25px;
+  padding: 2.5em;
   text-align: center;
   text-transform: uppercase;
   width: 100%;
@@ -106,7 +106,7 @@ h6 {
 }
 
 .header__brand a {
-  color: #fff;
+  color: #FFF;
   font-weight: 200;
   letter-spacing: 10px;
   text-transform: uppercase;
@@ -122,7 +122,7 @@ h6 {
 .location__map {
   height: 24em;
   width: 100%;
-  background-color: #ccc;
+  background-color: #CCC;
 }
 
 /* ============================================== */
@@ -139,7 +139,7 @@ h6 {
 }
 
 .filter__heading {
-  color: white;
+  color: #FFF;
   font-size: 1.1em;
   font-weight: 300;
   line-height: 1;
@@ -148,10 +148,10 @@ h6 {
 
 .filter__neighborhood,
 .filter__cuisine {
-  background-color: white;
-  border: 1px solid #fff;
+  background-color: #FFF;
+  border: 1px solid #FFF;
   font-family: inherit;
-  font-size: 1.2em;
+  font-size: 1.25em;
   height: 2.8em;
   letter-spacing: 0;
   margin: 0.2em 10vw;
@@ -168,21 +168,21 @@ h6 {
 /*               RESTAURANT LISTING               */
 /* ============================================== */
 .restaurants__list {
-  background-color: #f3f3f3;
+  background-color: #F3F3F3;
   list-style: outside none none;
-  padding: 30px 15px;
+  padding: 1.5em 0.5em;
   margin: 0 auto;
 
   display: grid;
-  grid-gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 320px));
+  grid-gap: 1em;
+  grid-template-columns: repeat(auto-fill, minmax(19em, 22em));
   grid-auto-rows: 1fr; /* Make all rows same height */
   justify-content: center;
 }
 
 .restaurant__card {
-  background-color: #fff;
-  border: 2px solid #ccc;
+  background-color: #FFF;
+  border: 2px solid #CCC;
   border-radius: 5px;
   min-height: 100%;
   padding: 0 0 1.2em;
@@ -195,15 +195,15 @@ h6 {
 }
 
 .restaurant__img {
-  background-color: #ccc;
+  background-color: #CCC;
   display: block;
   width: 100%;
   object-fit: cover;
 }
 
 .restaurant__name {
-  color: #f18200;
-  font-size: 1.5em;
+  color: #F18200;
+  font-size: 1.4em;
   font-weight: 200;
   letter-spacing: 0;
   line-height: 1.3;
@@ -238,10 +238,10 @@ h6 {
 
 .restaurant__more {
   background-color: orange;
-  border-bottom: 3px solid #eee;
-  color: #fff;
+  border-bottom: 3px solid #EEE;
+  color: #FFF;
   display: inline-block;
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: 600;
   margin: auto 2em 0;
   padding: 1.1em;
@@ -259,7 +259,6 @@ h6 {
 .reviews {
   border-bottom: 1px solid #D9D9D9;
   border-top: 1px solid #FFF;
-  /* padding: 140px 40px 30px; */
 }
 
 .restaurant-details {
@@ -271,7 +270,7 @@ h6 {
 
 .restaurant-details__name {
   color: #F18200;
-  font-size: 1.9em;
+  font-size: 1.4em;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -283,7 +282,9 @@ h6 {
 
 .restaurant-details__img {
   width: 90%;
+  height: 40vmax;
   margin: 0 auto;
+  object-fit: cover;
 }
 
 .restaurant-details__cuisine {
@@ -329,7 +330,7 @@ h6 {
   width: 100%;;
   margin-bottom: 3em;
   border-collapse: collapse;
-  border: 1px solid #eee;
+  border: 1px solid #EEE;
 }
 
 .opening-hours__day {
@@ -350,7 +351,7 @@ h6 {
 .restaurant-location__map {
   height: 20em;
   width: 100%;
-  background-color: #ccc;
+  background-color: #CCC;
 }
 
 .reviews {
@@ -402,7 +403,7 @@ h6 {
 .review__rating {
   font-size: 0.95em;
   font-weight: 600;
-  color: #3397db;
+  color: #3397DB;
   text-align: right;
   flex-grow: 1;
   flex-basis: 5em;
@@ -415,7 +416,15 @@ h6 {
 /* ========================================================== */
 /*                        MEDIA QUERIES                       */
 /* ========================================================== */
-@media screen and (min-width: 425px) and (max-height: 800px) and (orientation: landscape) {
+@media screen and (min-width: 350px) {
+  /* ========================= MAP ========================== */
+  /* Make map a bit larger for medium and larger phones */
+  .location__map {
+    height: 28em;
+  }
+}
+
+@media screen and (min-width: 425px) and (max-width: 800px) and (max-height: 600px) and (orientation: landscape) {
   /* ========================= MAP ========================== */
   /* Make map a bit smaller for phones in landscape mode */
   .location__map {
@@ -468,7 +477,7 @@ h6 {
     padding: 0.4em 1.2em;
     list-style: none;
     background-color: #EEE;
-    font-size: 1.15em;
+    font-size: 0.9em;
     margin: 0;
     width: 100%;
     overflow: hidden;
@@ -559,7 +568,8 @@ h6 {
     x axis) to make better use of space on screens between
     500px and 689px (breakpoint) */
   .restaurants__list {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 550px));
+    padding: 1.5em 0;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 90vw));
     grid-auto-rows: 1fr; /* Make all cards the same height */
     justify-content: center;
     align-items: center;
@@ -569,7 +579,7 @@ h6 {
     padding: 0.6em;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-gap: 10px;
+    grid-gap: 0.7em;
     grid-template-areas:
       "img name"
       "img neighborhood"
@@ -604,7 +614,7 @@ h6 {
   }
 
   .restaurant__more {
-    padding: 10px;
+    padding: 0.7em;
     grid-area: more;
     align-self: center; /* resets to center from flexbox settings above */
   }
@@ -632,7 +642,7 @@ h6 {
   /* Adjust padding/spacing and font-size */
   .restaurant__card {
     padding: 0.8em;
-    grid-row-gap: 5px;
+    grid-row-gap: 0.4em;
   }
 
   .restaurant__name {
@@ -716,7 +726,7 @@ h6 {
   .reviews__list {
     max-width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 550px));
+    grid-template-columns: repeat(auto-fill, minmax(20em, 35em));
     grid-gap: 2em;
     grid-auto-flow: row;
     justify-content: center;
@@ -732,21 +742,27 @@ h6 {
   /* ================== RESTAURANT DETAILS ================== */
   /* Increase padding for medium and larger screens */
   .restaurant-details {
-    padding: 2em;
+    padding: 2em 4em;
   }
 }
 
 @media screen and (min-width: 900px) {
-  /* Increase global font-size */
+  /* Increase global font-size based on root global font-size of 14px */
   body {
-    font-size: calc(14px * 1.2);
+    font-size: calc(14px * 1.1);
+  }
+
+  .restaurants__list {
+    grid-template-columns: repeat(auto-fill, minmax(16em, 19em));
+    justify-content: space-evenly;
+    grid-row-gap: 3em;
   }
 }
 
 @media screen and (min-width: 1200px) {
-  /* Increase global font-size */
+  /* Increase global font-size based on root global font-size of 14px */
   body {
-    font-size: calc(14px * 1.3);
+    font-size: calc(14px * 1.2);
   }
 
   /* ================== RESTAURANT DETAILS ================== */
@@ -770,11 +786,6 @@ h6 {
 }
 
 @media screen and (min-width: 1400px) {
-  /* Increase global font-size */
-  body {
-    font-size: calc(14px * 1.4);
-  }
-
   /* ================== RESTAURANT DETAILS ================== */
   .restaurant-details {
     justify-content: center;
@@ -782,8 +793,8 @@ h6 {
 }
 
 @media screen and (min-width: 1800px) {
-  /* Increase global font-size */
+  /* Increase global font-size based on root global font-size of 14px */
   body {
-    font-size: calc(14px * 1.6);
+    font-size: calc(14px * 1.4);
   }
 }
