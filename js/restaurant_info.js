@@ -55,9 +55,8 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const ADDRESS = document.getElementById('restaurant-details__address');
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
 
-  const PICTURE = document.getElementById('restaurant__picture');
+  const PICTURE = document.getElementById('restaurant-details__picture');
   const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
-  // console.log(PICTURE_URL);
   PICTURE.innerHTML =
     `<source
       media="(min-width: 1200px)"
@@ -86,7 +85,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
       id="restaurant-details__img"
       srcset="${PICTURE_URL}_small@1x.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
-      src="${PICTURE_URL}_small@1x.jpg.jpg">`;
+      src="${PICTURE_URL}_small@1x.jpg">`;
 
   const CUISINE = document.getElementById('restaurant-details__cuisine');
   CUISINE.innerHTML = restaurant.cuisine_type;

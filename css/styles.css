@@ -280,7 +280,7 @@ h6 {
   text-align: center;
 }
 
-.restaurant__picture {
+.restaurant-details__picture {
   width: 90%;
   height: 40vmax;
   margin: 0 auto;

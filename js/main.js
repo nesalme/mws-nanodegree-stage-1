@@ -139,11 +139,20 @@ createRestaurantHTML = (restaurant) => {
   const LI = document.createElement('li');
   LI.className = 'restaurant__card';
 
-  const IMAGE = document.createElement('img');
-  IMAGE.className = 'restaurant__img';
-  IMAGE.src = DBHelper.imageUrlForRestaurant(restaurant);
-  IMAGE.srcset
-  LI.append(IMAGE);
+  const PICTURE = document.createElement('picture');
+  const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
+  PICTURE.className = 'restaurant__picture';
+  PICTURE.innerHTML =
+    `<source
+      srcset="${PICTURE_URL}_small@1x.webp 1x,
+              ${PICTURE_URL}_small@2x.webp 2x"
+      type="image/webp">` +
+    `<img
+      class="restaurant__img"
+      srcset="${PICTURE_URL}_small@1x.jpg 1x,
+              ${PICTURE_URL}_small@2x.jpg 2x"
+      src="${PICTURE_URL}_small@1x.jpg">`;
+  LI.append(PICTURE);
 
   const NAME = document.createElement('h3');
   NAME.className = 'restaurant__name';
