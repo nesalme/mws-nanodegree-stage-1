@@ -1,4 +1,4 @@
-let restaurants, neighborhoods, cuisines, map, markers;
+let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -67,16 +67,18 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
+  const mapDOM = document.getElementById('map');
   let loc = {
     lat: 40.722216,
     lng: -73.987501
   };
-  self.map = new google.maps.Map(document.getElementById('map'), {
+  self.map = new google.maps.Map(mapDOM, {
     zoom: 12,
     center: loc,
     scrollwheel: false
   });
   updateRestaurants();
+  self.map.addListener('tilesloaded', improveMapAccessibility);
 }
 
 /**
@@ -137,7 +139,13 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
  */
 createRestaurantHTML = (restaurant) => {
   const LI = document.createElement('li');
-  LI.className = 'restaurant__card';
+  LI.className = 'restaurant__item';
+
+  const CARD = document.createElement('section');
+  CARD.className = 'restaurant__card';
+  CARD.setAttribute('aria-label', `${restaurant.name}`);
+  CARD.setAttribute('tabindex', '0');
+  LI.append(CARD);
 
   const PICTURE = document.createElement('picture');
   const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
@@ -153,28 +161,29 @@ createRestaurantHTML = (restaurant) => {
       srcset="${PICTURE_URL}_small@1x.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
       src="${PICTURE_URL}_small@1x.jpg">`;
-  LI.append(PICTURE);
+  CARD.append(PICTURE);
 
   const NAME = document.createElement('h3');
   NAME.className = 'restaurant__name';
   NAME.innerHTML = restaurant.name;
-  LI.append(NAME);
+  CARD.append(NAME);
 
-  const NEIGHBORHOOD = document.createElement('h4');
+  const NEIGHBORHOOD = document.createElement('p');
   NEIGHBORHOOD.className = 'restaurant__neighborhood';
   NEIGHBORHOOD.innerHTML = restaurant.neighborhood;
-  LI.append(NEIGHBORHOOD);
+  CARD.append(NEIGHBORHOOD);
 
-  const ADDRESS = document.createElement('p');
+  const ADDRESS = document.createElement('address');
   ADDRESS.className = 'restaurant__address';
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>');
-  LI.append(ADDRESS);
+  CARD.append(ADDRESS);
 
   const MORE = document.createElement('a');
   MORE.className = 'restaurant__more';
-  MORE.innerHTML = 'View Details';
+  MORE.innerHTML = 'More details';
   MORE.href = DBHelper.urlForRestaurant(restaurant);
-  LI.append(MORE);
+  MORE.setAttribute('aria-label', `View more details on ${restaurant.name}`);
+  CARD.append(MORE);
 
   return LI;
 }
@@ -191,4 +200,16 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(MARKER);
   });
+}
+
+/**
+ * Resolve accessibility issues relating to Google Maps JS API
+ */
+improveMapAccessibility = () => {
+  const INTERVAL = setInterval(() => {
+    // Set title for map's <iframe>
+    DBHelper.setTitleOnIframe();
+    // Remove map (and its children) from tab order
+    DBHelper.removeMapsTabOrder();
+  }, 1000);
 }

@@ -15,6 +15,7 @@ window.initMap = () => {
       });
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+      self.map.addListener('tilesloaded', improveMapAccessibility);
     }
   });
 }
@@ -108,8 +109,9 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
     const ROW = document.createElement('tr');
     ROW.className = 'opening-hours__row';
 
-    const DAY = document.createElement('td');
+    const DAY = document.createElement('th');
     DAY.className = 'opening-hours__day';
+    DAY.setAttribute('scope','row');
     DAY.innerHTML = key;
     ROW.appendChild(DAY);
 
@@ -127,7 +129,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const CONTAINER = document.getElementById('reviews');
-  const TITLE = document.createElement('h2');
+  const TITLE = document.createElement('h3');
   TITLE.className = 'reviews__heading';
   TITLE.innerHTML = 'Reviews';
   CONTAINER.appendChild(TITLE);
@@ -151,25 +153,34 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 createReviewHTML = (review) => {
   const LI = document.createElement('li');
   LI.className = 'reviews__item';
+
+  const ARTICLE = document.createElement('article');
+  ARTICLE.className = 'review';
+  ARTICLE.setAttribute('role', 'article');
+  ARTICLE.setAttribute('aria-label', `Review by ${review.name} on ${review.date}`);
+  LI.appendChild(ARTICLE);
+
   const NAME = document.createElement('p');
   NAME.className = 'review__author';
   NAME.innerHTML = review.name;
-  LI.appendChild(NAME);
+  NAME.setAttribute('aria-hidden', 'true');
+  ARTICLE.appendChild(NAME);
 
   const RATING = document.createElement('p');
   RATING.className = 'review__rating';
   RATING.innerHTML = `Rating: ${review.rating}`;
-  LI.appendChild(RATING);
+  ARTICLE.appendChild(RATING);
 
   const DATE = document.createElement('p');
   DATE.className = 'review__date';
   DATE.innerHTML = review.date;
-  LI.appendChild(DATE);
+  DATE.setAttribute('aria-hidden', 'true');
+  ARTICLE.appendChild(DATE);
 
   const COMMENTS = document.createElement('p');
   COMMENTS.className = 'review__comments';
   COMMENTS.innerHTML = review.comments;
-  LI.appendChild(COMMENTS);
+  ARTICLE.appendChild(COMMENTS);
 
   return LI;
 }
@@ -181,6 +192,7 @@ fillBreadcrumb = (restaurant=self.restaurant) => {
   const BREADCRUMB = document.getElementById('breadcrumb');
   const LI = document.createElement('li');
   LI.innerHTML = restaurant.name;
+  LI.setAttribute('aria-current', 'page');
   BREADCRUMB.appendChild(LI);
 }
 
@@ -198,4 +210,16 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+/**
+ * Resolve accessibility issues relating to Google Maps JS API
+ */
+improveMapAccessibility = () => {
+  const INTERVAL = setInterval(() => {
+    // Set title for map's <iframe>
+    DBHelper.setTitleOnIframe();
+    // Remove map (and its children) from tab order
+    DBHelper.removeMapsTabOrder();
+  }, 1000);
 }
