@@ -1,4 +1,4 @@
-let restaurants, neighborhoods, cuisines, map, markers;
+let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -67,16 +67,18 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
+  const mapDOM = document.getElementById('map');
   let loc = {
     lat: 40.722216,
     lng: -73.987501
   };
-  self.map = new google.maps.Map(document.getElementById('map'), {
+  self.map = new google.maps.Map(mapDOM, {
     zoom: 12,
     center: loc,
     scrollwheel: false
   });
   updateRestaurants();
+  self.map.addListener('tilesloaded', improveMapAccessibility);
 }
 
 /**
@@ -165,15 +167,16 @@ createRestaurantHTML = (restaurant) => {
   NEIGHBORHOOD.innerHTML = restaurant.neighborhood;
   LI.append(NEIGHBORHOOD);
 
-  const ADDRESS = document.createElement('p');
+  const ADDRESS = document.createElement('address');
   ADDRESS.className = 'restaurant__address';
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>');
   LI.append(ADDRESS);
 
   const MORE = document.createElement('a');
   MORE.className = 'restaurant__more';
-  MORE.innerHTML = 'View Details';
+  MORE.innerHTML = 'More details';
   MORE.href = DBHelper.urlForRestaurant(restaurant);
+  MORE.setAttribute('aria-label', `View more details on ${restaurant.name}`);
   LI.append(MORE);
 
   return LI;
@@ -191,4 +194,25 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(MARKER);
   });
+}
+
+/**
+ * Resolve accessibility issues relating to Google Maps JS API
+ */
+/* window.setTimeout(() => {
+  // Add title to map's <iframe>
+  document.querySelectorAll('#map iframe').forEach((el) => {
+    el.setAttribute('title', 'Restaurant locations on Google Maps');
+  });
+  // Remove map (and its children) from tab order
+  DBHelper.removeMapsTabOrder();
+}, 1000); // interval to allow all map elements to appear in the DOM */
+
+improveMapAccessibility = () => {
+  const INTERVAL = setInterval(() => {
+    // Set title for map's <iframe>
+    DBHelper.setTitleOnIframe();
+    // Remove map (and its children) from tab order
+    DBHelper.removeMapsTabOrder();
+  }, 1000);
 }

@@ -168,4 +168,22 @@ class DBHelper {
     );
     return MARKER;
   }
+
+/**
+ * Remove map (and all descendants) from tab order
+ */
+  static removeMapsTabOrder() {
+    document.querySelectorAll('#map *').forEach((el) => {
+      el.setAttribute('tabindex', '-1');
+    });
+  }
+
+/**
+ * Set title on iframe to fulfill accessibility requirements
+ */
+  static setTitleOnIframe() {
+    document.querySelectorAll('#map iframe').forEach((el) => {
+      el.setAttribute('title', 'Restaurant locations on Google Maps');
+    });
+  }
 }
