@@ -288,8 +288,8 @@ h6 {
 }
 
 .restaurant-details__name {
-  color: #F18200;
-  font-size: 1.4em;
+  color: #A32C00;
+  font-size: 1.8em;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -385,8 +385,8 @@ h6 {
 }
 
 .reviews__heading {
-  color: #F58500;
-  font-size: 1.8em;
+  color: #A32C00;
+  font-size: 1.6em;
   font-weight: 300;
   letter-spacing: -1px;
 }
