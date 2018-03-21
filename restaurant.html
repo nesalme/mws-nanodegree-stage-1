@@ -23,13 +23,14 @@
       </h1>
     </nav>
 
-    <!-- TODO: semantic markup for breadcrumb (possibly: nav) -->
     <!-- Beginning breadcrumb -->
-    <ul class="breadcrumb" id="breadcrumb">
-      <li class="breadcrumb__item">
-        <a class="breadcrumb__link" href="/">Home</a>
-      </li>
-    </ul>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol class="breadcrumb__list" id="breadcrumb">
+        <li class="breadcrumb__item">
+          <a class="breadcrumb__link" href="/">Home</a>
+        </li>
+      </ol>
+    </nav>
     <!-- End breadcrumb -->
     <!-- End nav -->
   </header>
@@ -39,19 +40,19 @@
   <main class="restaurant__main">
     <!-- Beginning restaurant -->
     <section class="restaurant-details">
-      <h1 class="restaurant-details__name" id="restaurant-details__name"></h1>
+      <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
       <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
       <p id="restaurant-details__cuisine" class="restaurant-details__cuisine"></p>
-      <p class="restaurant-details__address" id="restaurant-details__address"></p>
+      <address class="restaurant-details__address" id="restaurant-details__address"></address>
       <div class="opening-hours">
-        <h2 class="opening-hours__heading">Opening Hours</h2>
-        <table class="opening-hours__table" id="opening-hours__table"></table>
+        <h3 class="opening-hours__heading" id="opening-hours__heading">Opening Hours</h3>
+        <table class="opening-hours__table" id="opening-hours__table" aria-labelledby="opening-hours__heading"></table>
       </div>
     </section>
     <!-- end restaurant -->
 
     <!-- Beginning map -->
-    <aside class="restaurant-location">
+    <aside class="restaurant-location" tabindex="-1">
       <div class="restaurant-location__map" id="map"></div>
     </aside>
     <!-- End map -->
