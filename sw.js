@@ -1,4 +1,4 @@
-var staticCacheName = 'restaurant-reviews-v1';
+var staticCacheName = 'restaurant-reviews-v2';
 
 /* When service worker installs, store key assets in cache */
 self.addEventListener('install', (event) => {
@@ -14,7 +14,7 @@ self.addEventListener('install', (event) => {
         '/img/',
         'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2',
         'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
-      ]);
+      ]).then(() => self.skipWaiting()); // immediately activate new service workers
     })
   );
 });
