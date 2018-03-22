@@ -213,3 +213,15 @@ improveMapAccessibility = () => {
     DBHelper.removeMapsTabOrder();
   }, 1000);
 }
+
+/**
+ * Register service worker for offline-first
+ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(() => {
+    // success
+    console.log('Service worker registered');
+  }).catch((error) => {
+    console.log('Service worker failed to register with ', error);
+  });
+}
