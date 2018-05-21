@@ -4,25 +4,36 @@
 
 ## Project Overview: Stage 1
 
-For the **Restaurant Reviews** projects, you will incrementally convert a static webpage to a mobile-ready web application. In **Stage One**, you will take a static design that lacks accessibility and convert the design to be responsive on different sized displays and accessible for screen reader use. You will also add a service worker to begin the process of creating a seamless offline experience for your users.
+For the **Restaurant Reviews** project, we were asked to convert a static webpage to a mobile-ready web application, in three distinct stages.
 
-### Specification
+**Stage One** focused on responsive design, accessibility and the first steps of an offline-first approach:
 
-You have been provided the code for a restaurant reviews website. The code has a lot of issues. It’s barely usable on a desktop browser, much less a mobile device. It also doesn’t include any standard accessibility features, and it doesn’t work offline at all. Your job is to update the code to resolve these issues while still maintaining the included functionality. 
+- [x] all page elements are visible and usable in any screen size, including desktop, tablet and mobile
+- [x] images do not overlap and adjust their size and quality to the device screen
+- [x] images have descriptive `alt` attributes when needed
+- [x] screen reader attributes are used when appropriate
+- [x] semantic HTML5 markup or - when more appropriate - aria attributes are used
+- [x] data is cached using a service worker and the Cache API so that any page already visited can be accessed offline
 
-### What do I do from here?
+## Working on the project
 
-1. In this folder, start up a simple HTTP server to serve up the site files on your local computer. Python has some simple tools to do this, and you don't even need to know Python. For most people, it's already installed on your computer. 
+To run the project in your local computer, simply start up a simple HTTP server using Python.
 
-In a terminal, check the version of Python you have: `python -V`. If you have Python 2.x, spin up the server with `python -m SimpleHTTPServer 8000` (or some other port, if port 8000 is already in use.) For Python 3.x, you can use `python3 -m http.server 8000`. If you don't have Python installed, navigate to Python's [website](https://www.python.org/) to download and install the software.
+In a terminal, check the version of Python you have by running `python -V`. For Python 2.x, spin up the server with `python -m SimpleHTTPServer 8000` (or some other port, if port 8000 is already in use). For Python 3.x, run  `python3 -m http.server 8000`.
 
-2. With your server running, visit the site: `http://localhost:8000`, and look around for a bit to see what the current experience looks like.
-3. Explore the provided code, and make start making a plan to implement the required features in three areas: responsive design, accessibility and offline use.
-4. Write code to implement the updates to get this site on its way to being a mobile-ready website.
+> If you don't have Python installed, navigate to Python's [website](https://www.python.org/) to download and install the software.
 
-### Note about ES6
+### Using Grunt
 
-Most of the code in this project has been written to the ES6 JavaScript specification for compatibility with modern web browsers and future proofing JavaScript code. As much as possible, try to maintain use of ES6 in any additional JavaScript you write. 
+This project uses Grunt to process and generate responsive images, as follows:
+
+| Command                    | Task                                              |
+| -------------------------- | ------------------------------------------------- |
+| `$ grunt`                  | creates a new, completed images directory         |
+| `$ grunt clean`            | removes the image directory                       |
+| `$ grunt responsive_images`| re-processes images without removing the old ones |
 
 
+### Note on ES6
 
+Most of the code in this project has been written to the ES6 JavaScript specification for compatibility with modern web browsers and future proofing JavaScript code. As much as possible, try to maintain use of ES6 in any additional JavaScript you write.
