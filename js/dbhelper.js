@@ -8,28 +8,22 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const PORT = 8000; // Change this to your server port
-    return `http://localhost:${PORT}/data/restaurants.json`;
+    const PORT = 1337; // Change this to your server port
+    return `http://localhost:${PORT}/restaurants`;
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const RESTAURANTS = json.restaurants;
-        callback(null, RESTAURANTS);
-      } else { // Oops!. Got an error from server.
-        const ERROR = (`Request failed. Returned status of ${xhr.status}`);
-        callback(ERROR, null);
-      }
-    };
-    xhr.send();
+    // Pull JSON response from API and parse.
+    return fetch(DBHelper.DATABASE_URL, {
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(error => console.log('Request failed:', error));
   }
 
   /**
@@ -144,15 +138,22 @@ class DBHelper {
    * Restaurant page URL.
    */
   static urlForRestaurant(restaurant) {
-    return (`./restaurant.html?id=${restaurant.id}`);
+    return `./restaurant.html?id=${restaurant.id}`;
   }
 
   /**
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    /* remove file extension to extract only the image file name */
-    return (`/img/${restaurant.photograph.replace(/\.[^/\\.]+$/, "")}`);
+    // Use restaurant data to retrieve correct photograph from images folder
+    if (restaurant && restaurant.photograph) {
+      return `/img/${restaurant.photograph}`;
+    }
+    // Retrieve custom image if restaurant does not have photo.
+    // Custom image uses an original photograph of Alex Jones, available on Unsplash at:
+    // https://unsplash.com/photos/v0_6jaOOjpk
+    // TODO: Give credit to photographer and Unsplash in UI (eg, Photo by Alex Jones on Unsplash)
+    return `/img/unavailable`;
   }
 
   /**

@@ -1,4 +1,4 @@
-var staticCacheName = 'restaurant-reviews-v2';
+var staticCacheName = 'restaurant-reviews-v2.1';
 
 /* When service worker installs, store key assets in cache */
 self.addEventListener('install', (event) => {
@@ -7,11 +7,10 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '/',
         '/css/styles.css',
-        '/data/restaurants.json',
         '/js/main.js',
         '/js/restaurant_info.js',
         '/js/dbhelper.js',
-        '/img/',
+        '/img/', // TODO: Store only unavailable image file in cache to minimize cache storage
         'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2',
         'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
       ]).then(() => self.skipWaiting()); // immediately activate new service workers
