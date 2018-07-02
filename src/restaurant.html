@@ -5,23 +5,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Main CSS file -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="styles/styles.css">
 
   <title>Restaurant Info</title>
 </head>
 
 <body class="restaurant inside">
-  <!-- Beginning header -->
   <header class="header">
-    <!-- Beginning nav -->
     <nav class="header__nav">
       <h1 class="header__brand">
         <a href="/">Restaurant Reviews</a>
       </h1>
     </nav>
 
-    <!-- Beginning breadcrumb -->
     <nav class="breadcrumb" aria-label="Breadcrumb">
       <ol class="breadcrumb__list" id="breadcrumb">
         <li class="breadcrumb__item">
@@ -29,14 +25,9 @@
         </li>
       </ol>
     </nav>
-    <!-- End breadcrumb -->
-    <!-- End nav -->
   </header>
-  <!-- End header -->
 
-  <!-- Beginning main -->
   <main class="restaurant__main">
-    <!-- Beginning restaurant -->
     <section class="restaurant-details">
       <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
       <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
@@ -47,36 +38,23 @@
         <table class="opening-hours__table" id="opening-hours__table" aria-labelledby="opening-hours__heading"></table>
       </div>
     </section>
-    <!-- end restaurant -->
 
-    <!-- Beginning map -->
     <aside class="restaurant-location" tabindex="-1">
       <div class="restaurant-location__map" id="map" role="application"></div>
     </aside>
-    <!-- End map -->
 
-    <!-- Beginning reviews -->
     <section class="reviews" id="reviews">
       <ul class="reviews__list" id="reviews__list"></ul>
     </section>
-    <!-- End reviews -->
   </main>
-  <!-- End main -->
 
-  <!-- Beginning footer -->
   <footer class="footer">
     Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
   </footer>
-  <!-- End footer -->
 
-  <!-- Beginning scripts -->
-  <!-- Database helpers -->
-  <script src="js/dbhelper.js"></script>
-  <!-- Main javascript file -->
-  <script src="js/restaurant_info.js"></script>
-  <!-- Google Maps -->
+  <script src="scripts/dbhelper.js"></script>
+  <script src="scripts/restaurant_info.js"></script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1xLbOrua94xzKEbuUydx9THJMhqyZTCY&libraries=places&callback=initMap"></script>
-  <!-- End scripts -->
 </body>
 
 </html>

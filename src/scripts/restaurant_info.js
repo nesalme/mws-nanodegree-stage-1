@@ -1,3 +1,5 @@
+import { DBHelper } from './dbhelper';
+
 let restaurant, map;
 
 /**
@@ -23,7 +25,7 @@ window.initMap = () => {
 /**
  * Get current restaurant from page URL.
  */
-fetchRestaurantFromURL = (callback) => {
+const fetchRestaurantFromURL = (callback) => {
   if (self.restaurant) { // restaurant already fetched!
     callback(null, self.restaurant);
     return;
@@ -49,7 +51,7 @@ fetchRestaurantFromURL = (callback) => {
 /**
  * Create restaurant HTML and add it to the webpage
  */
-fillRestaurantHTML = (restaurant = self.restaurant) => {
+const fillRestaurantHTML = (restaurant = self.restaurant) => {
   const NAME = document.getElementById('restaurant-details__name');
   NAME.innerHTML = restaurant.name;
 
@@ -70,7 +72,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
       sizes="(min-width: 650px) 50vw, 85vw"
       type="image/webp">` +
     `<source
-      srcset="${PICTURE_URL}_small@1x.webp 1x,
+      srcset="${PICTURE_URL}_small.webp 1x,
               ${PICTURE_URL}_small@2x.webp 2x"
       type="image/webp">` +
     `<source
@@ -85,9 +87,9 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
       class="restaurant-details__img"
       id="restaurant-details__img"
       alt="The ${restaurant.name} restaurant"
-      srcset="${PICTURE_URL}_small@1x.jpg 1x,
+      srcset="${PICTURE_URL}_small.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
-      src="${PICTURE_URL}_small@1x.jpg">`;
+      src="${PICTURE_URL}_small.jpg">`;
 
   const CUISINE = document.getElementById('restaurant-details__cuisine');
   CUISINE.innerHTML = restaurant.cuisine_type;
@@ -103,7 +105,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 /**
  * Create restaurant operating hours HTML table and add it to the webpage.
  */
-fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
+const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
   const HOURS = document.getElementById('opening-hours__table');
   for (let key in operatingHours) {
     const ROW = document.createElement('tr');
@@ -127,7 +129,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const CONTAINER = document.getElementById('reviews');
   const TITLE = document.createElement('h3');
   TITLE.className = 'reviews__heading';
@@ -150,7 +152,7 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 /**
  * Create review HTML and add it to the webpage.
  */
-createReviewHTML = (review) => {
+const createReviewHTML = (review) => {
   const LI = document.createElement('li');
   LI.className = 'reviews__item';
 
@@ -188,7 +190,7 @@ createReviewHTML = (review) => {
 /**
  * Add restaurant name to the breadcrumb navigation menu
  */
-fillBreadcrumb = (restaurant=self.restaurant) => {
+const fillBreadcrumb = (restaurant=self.restaurant) => {
   const BREADCRUMB = document.getElementById('breadcrumb');
   const LI = document.createElement('li');
   LI.innerHTML = restaurant.name;
@@ -199,7 +201,7 @@ fillBreadcrumb = (restaurant=self.restaurant) => {
 /**
  * Get a parameter by name from page URL.
  */
-getParameterByName = (name, url) => {
+const getParameterByName = (name, url) => {
   if (!url)
     url = window.location.href;
   name = name.replace(/[\[\]]/g, '\\$&');
@@ -215,7 +217,7 @@ getParameterByName = (name, url) => {
 /**
  * Resolve accessibility issues relating to Google Maps JS API
  */
-improveMapAccessibility = () => {
+const improveMapAccessibility = () => {
   const INTERVAL = setInterval(() => {
     // Set title for map's <iframe>
     DBHelper.setTitleOnIframe();

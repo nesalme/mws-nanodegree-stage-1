@@ -1,3 +1,5 @@
+import { DBHelper } from './dbhelper';
+
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
@@ -11,7 +13,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 /**
  * Fetch all neighborhoods and set their HTML.
  */
-fetchNeighborhoods = () => {
+const fetchNeighborhoods = () => {
   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
     if (error) { // Got an error
       console.error(error);
@@ -25,7 +27,7 @@ fetchNeighborhoods = () => {
 /**
  * Set neighborhoods HTML.
  */
-fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
+const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
   const SELECT = document.getElementById('filter__neighborhood');
   neighborhoods.forEach(neighborhood => {
     const OPTION = document.createElement('option');
@@ -38,7 +40,7 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
 /**
  * Fetch all cuisines and set their HTML.
  */
-fetchCuisines = () => {
+const fetchCuisines = () => {
   DBHelper.fetchCuisines((error, cuisines) => {
     if (error) { // Got an error!
       console.error(error);
@@ -52,7 +54,7 @@ fetchCuisines = () => {
 /**
  * Set cuisines HTML.
  */
-fillCuisinesHTML = (cuisines = self.cuisines) => {
+const fillCuisinesHTML = (cuisines = self.cuisines) => {
   const SELECT = document.getElementById('filter__cuisine');
 
   cuisines.forEach(cuisine => {
@@ -84,7 +86,7 @@ window.initMap = () => {
 /**
  * Update page and map for current restaurants.
  */
-updateRestaurants = () => {
+const updateRestaurants = () => {
   const C_SELECT = document.getElementById('filter__cuisine');
   const N_SELECT = document.getElementById('filter__neighborhood');
 
@@ -107,7 +109,7 @@ updateRestaurants = () => {
 /**
  * Clear current restaurants, their HTML and remove their map markers.
  */
-resetRestaurants = (restaurants) => {
+const resetRestaurants = (restaurants) => {
   // Remove all restaurants
   self.restaurants = [];
   const UL = document.getElementById('restaurants__list');
@@ -126,7 +128,7 @@ resetRestaurants = (restaurants) => {
 /**
  * Create all restaurants HTML and add them to the webpage.
  */
-fillRestaurantsHTML = (restaurants = self.restaurants) => {
+const fillRestaurantsHTML = (restaurants = self.restaurants) => {
   const UL = document.getElementById('restaurants__list');
   restaurants.forEach(restaurant => {
     UL.append(createRestaurantHTML(restaurant));
@@ -137,7 +139,7 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
 /**
  * Create restaurant HTML.
  */
-createRestaurantHTML = (restaurant) => {
+const createRestaurantHTML = (restaurant) => {
   const LI = document.createElement('li');
   LI.className = 'restaurant__item';
 
@@ -152,15 +154,23 @@ createRestaurantHTML = (restaurant) => {
   PICTURE.className = 'restaurant__picture';
   PICTURE.innerHTML =
     `<source
-      srcset="${PICTURE_URL}_small@1x.webp 1x,
-              ${PICTURE_URL}_small@2x.webp 2x"
+      media=(min-width: 440px)
+      srcset="${PICTURE_URL}_medium.webp"
+      type="image/webp">` +
+    `<source
+      srcset="${PICTURE_URL}_small.webp 1x,
+      ${PICTURE_URL}_small@2x.webp 2x"
+      type="image/webp">` +
+    `<source
+      media=(min-width: 440px)
+      srcset="${PICTURE_URL}_medium.jpg"
       type="image/webp">` +
     `<img
       class="restaurant__img"
       alt="The ${restaurant.name} restaurant"
-      srcset="${PICTURE_URL}_small@1x.jpg 1x,
+      srcset="${PICTURE_URL}_small.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
-      src="${PICTURE_URL}_small@1x.jpg">`;
+      src="${PICTURE_URL}_small.jpg">`;
   CARD.append(PICTURE);
 
   const NAME = document.createElement('h3');
@@ -191,7 +201,7 @@ createRestaurantHTML = (restaurant) => {
 /**
  * Add markers for current restaurants to the map.
  */
-addMarkersToMap = (restaurants = self.restaurants) => {
+const addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
     const MARKER = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
@@ -205,7 +215,7 @@ addMarkersToMap = (restaurants = self.restaurants) => {
 /**
  * Resolve accessibility issues relating to Google Maps JS API
  */
-improveMapAccessibility = () => {
+const improveMapAccessibility = () => {
   const INTERVAL = setInterval(() => {
     // Set title for map's <iframe>
     DBHelper.setTitleOnIframe();

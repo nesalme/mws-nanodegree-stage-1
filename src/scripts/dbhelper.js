@@ -1,8 +1,7 @@
 /**
  * Common database helper functions.
  */
-class DBHelper {
-
+export class DBHelper {
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
@@ -147,13 +146,13 @@ class DBHelper {
   static imageUrlForRestaurant(restaurant) {
     // Use restaurant data to retrieve correct photograph from images folder
     if (restaurant && restaurant.photograph) {
-      return `/img/${restaurant.photograph}`;
+      return `/images/${restaurant.photograph}`;
     }
     // Retrieve custom image if restaurant does not have photo.
     // Custom image uses an original photograph of Alex Jones, available on Unsplash at:
     // https://unsplash.com/photos/v0_6jaOOjpk
     // TODO: Give credit to photographer and Unsplash in UI (eg, Photo by Alex Jones on Unsplash)
-    return `/img/unavailable`;
+    return `/images/unavailable`;
   }
 
   /**
