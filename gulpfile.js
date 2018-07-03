@@ -7,8 +7,8 @@
 // Available tasks:
 // ----------------
 //  -> MAIN TASKS
-//  $ gulp                    : Default task (run build and start development server)
-//  $ gulp build              : Run all build tasks in sequence
+//  $ gulp                    : Default task, builds and starts development server
+//  $ gulp build              : Run all build tasks in sequence from scratch
 //  $ gulp clean              : Clean .tmp and dist directories
 //  $ gulp serve              : Start BrowserSync server for development and watch files
 //                              for changes
@@ -120,7 +120,7 @@ gulp.task('default', ['serve']);
 gulp.task('serve', ['build'], () => {
   browserSync.init({
     server: {baseDir: 'dist'},
-    // port: 8000,
+    port: 8000,
     browser: 'google chrome canary' // Comment out or change browser, as needed
   });
 

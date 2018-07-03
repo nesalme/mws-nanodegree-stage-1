@@ -1,3 +1,5 @@
+import idb from 'idb';
+
 /**
  * Common database helper functions.
  */
@@ -12,17 +14,105 @@ export class DBHelper {
   }
 
   /**
-   * Fetch all restaurants.
+   * Open IndexedDB.
    */
-  static fetchRestaurants(callback) {
-    // Pull JSON response from API and parse.
+  static openIndexedDB() {
+    // For browsers with no IndexedDB support
+    if (!('indexedDB' in window)) {
+      console.log('This browser does not support IndexedDB.');
+      return;
+    }
+
+    const DB_NAME = 'restaurant-reviews';
+    const DB_VERSION = 1;
+
+    return idb.open(DB_NAME, DB_VERSION, upgradeDB => {
+      console.log('Creating a new object store');
+
+      // Create object store for restaurant data (only if none exists yet)
+      if (!upgradeDB.objectStoreNames.contains('restaurants')) {
+        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
+        console.log('Created new object store restaurants');
+      }
+    });
+  }
+
+  /**
+   * Update IndexedDB cache.
+   */
+  static updateIndexedDB(data) {
+    DBHelper.openIndexedDB()
+      .then(db => {
+        const tx = db.transaction('restaurants', 'readwrite');
+        const store = tx.objectStore('restaurants');
+
+        // Break down imported data (sorted in data array) and store
+        // each piece of data in IndexedDB restaurants store
+        data.forEach(item => store.put(item));
+
+        return tx.complete;
+      })
+      .then(() => console.log('IndexedDB database successfully updated.'))
+      .catch(error => console.log('Failed to update IndexedDB store:', error));
+  }
+
+  /**
+   * Fetch data from IndexedDB database.
+   */
+  static fetchFromIndexedDB() {
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        const tx = db.transaction('restaurants');
+        const store = tx.objectStore('restaurants');
+
+        // Return all items in object store.
+        return store.getAll();
+      });
+  }
+
+  /**
+   * Fetch data from API.
+   */
+  static fetchFromAPI() {
+    // Fetch JSON data from API and parse.
     return fetch(DBHelper.DATABASE_URL, {
       headers: new Headers({
         'Content-Type': 'application/json'
       })
     }).then(response => response.json())
-      .then(data => callback(null, data))
+      .then(data => {
+        // Update IndexedDB database with fresh data fetched from API and return.
+        DBHelper.updateIndexedDB(data);
+        return data;
+      })
       .catch(error => console.log('Request failed:', error));
+  }
+
+  /**
+   * Fetch all restaurants.
+   */
+  static fetchRestaurants(callback) {
+    // Fetch restaurants data from IndexedDB database.
+    DBHelper.fetchFromIndexedDB()
+      .then(data => {
+        // If IndexedDB returns no/empty data, fetch from API.
+        if (!data || data.length < 1) {
+          console.log('Retrieving data from API.');
+          return DBHelper.fetchFromAPI();
+        }
+
+        console.log('Retrieving data from IndexedDB database.');
+
+        // Return data to pass into callback function.
+        return data;
+      })
+      .then (data => {
+        callback(null, data);
+      })
+      .catch(error => {
+        console.log('Unable to fetch restaurant data:', error);
+        callback(error, null);
+      });
   }
 
   /**

@@ -1,4 +1,4 @@
-var staticCacheName = 'restaurant-reviews-v2.1';
+var staticCacheName = 'restaurant-reviews-v3';
 
 /* When service worker installs, store key assets in cache */
 self.addEventListener('install', (event) => {
@@ -6,13 +6,11 @@ self.addEventListener('install', (event) => {
     caches.open(staticCacheName).then((cache) => {
       return cache.addAll([
         '/',
-        '/css/styles.css',
-        '/js/main.js',
-        '/js/restaurant_info.js',
-        '/js/dbhelper.js',
-        '/img/', // TODO: Store only unavailable image file in cache to minimize cache storage
-        'https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2',
-        'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
+        'restaurant.html',
+        '/styles/styles.css',
+        '/scripts/main.js',
+        '/scripts/restaurant_info.js',
+        '/scripts/dbhelper.js'
       ]).then(() => self.skipWaiting()); // immediately activate new service workers
     })
   );
@@ -37,8 +35,8 @@ self.addEventListener('activate', (event) => {
 /* Check cache for resource; if not available, fetch from network and store in cache */
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((resp) => {
-      return resp || fetch(event.request).then((response) => {
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request).then((response) => {
         return caches.open(staticCacheName).then((cache) => {
           cache.put(event.request, response.clone());
           return response;

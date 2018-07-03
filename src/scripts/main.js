@@ -66,24 +66,6 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
 }
 
 /**
- * Initialize Google map, called from HTML.
- */
-window.initMap = () => {
-  const mapDOM = document.getElementById('map');
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(mapDOM, {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
-  self.map.addListener('tilesloaded', improveMapAccessibility);
-}
-
-/**
  * Update page and map for current restaurants.
  */
 const updateRestaurants = () => {
@@ -222,6 +204,24 @@ const improveMapAccessibility = () => {
     // Remove map (and its children) from tab order
     DBHelper.removeMapsTabOrder();
   }, 1000);
+}
+
+/**
+ * Initialize Google map, called from HTML.
+ */
+window.initMap = () => {
+  const mapDOM = document.getElementById('map');
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+  self.map = new google.maps.Map(mapDOM, {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+  updateRestaurants();
+  self.map.addListener('tilesloaded', improveMapAccessibility);
 }
 
 /**
