@@ -8,6 +8,10 @@ dist/
 # Gulp pre-processes files inside the .tmp directory
 .tmp/
 
+### Favicons ###
+# RealFaviconGenerator datafile, built through Gulp
+faviconData.json
+
 ### macOS ###
 *.DS_Store
 .AppleDouble

@@ -39,6 +39,10 @@ To build and spin up a server that watches your files for changes simply run `gu
 
 See the documentation at the top of the Gulpfile for a complete list of the tasks implemented and the Gulp modules they use.
 
+#### Favicons
+
+Gulp is used to generate, inject and update Favicons (using [Real Favicon Generator](https://realfavicongenerator.net/)). The build task includes a task to generate Favicons from scratch, but you should also run `gulp update:favicon` regularly to check Real Favicon Generator for updates.
+
 ## Note on ES6
 
 Most of the code in this project has been written to the ES6 JavaScript specification for compatibility with modern web browsers and future proofing JavaScript code. Babel (through the Browserify transform Babelify) is also configured to transpile ES6 code into ES5 to ensure greater browser support. As much as possible, try to maintain use of ES6 in any additional JavaScript you write.

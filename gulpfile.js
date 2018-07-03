@@ -9,19 +9,22 @@
 //  -> MAIN TASKS
 //  $ gulp                    : Default task, builds and starts development server
 //  $ gulp build              : Run all build tasks in sequence from scratch
-//  $ gulp clean              : Clean .tmp and dist directories
+//  $ gulp clean              : Clean all files and folders generated in build tasks
 //  $ gulp serve              : Start BrowserSync server for development and watch files
 //                              for changes
 //
 //  -> SUPPORTING TASKS
 //  $ gulp clean:dist         : Clean dist directory
+//  $ gulp clean:favicon      : Clean Favicon data file
 //  $ gulp clean:images       : Clean all images from dist and .tmp directories
 //  $ gulp clean:tmp          : Clean .tmp directory
-//  $ gulp html               : Build any new/changed HTML files in dist directory
+//  $ gulp generate:favicon   : Generate Favicons using RealFaviconGenerator
+//  $ gulp html               : Build any new/changed HTML files in dist directory                                  (with injected Favicon markup)
 //  $ gulp images             : Optimize and build images (all formats)
 //  $ gulp responsive-images  : Optimize and build responsive images (JPEG,PNG,WebP)
 //  $ gulp scripts            : Bundle, minify and build JavaScript
 //  $ gulp styles             : Optimize and build CSS files
+//  $ gulp update:favicon     : Check RealFaviconGenerator for updates
 //  $ gulp watch:scripts      : Ensure that server reload happens at end of all JS tasks
 //
 // -----------------------------------------------------------------
@@ -42,6 +45,7 @@
 //  gulp-newer          : Only pass through newer source files
 //  gulp-notify         : Emit notifications
 //  gulp-postcss        : Process and parse CSS at once through several plugins
+//  gulp-real-favicon   : Generate multiplatform favicons with RealFaviconGenerator
 //  gulp-rename         : Rename files
 //  gulp-responsive     : Generate responsive images
 //  gulp-sass           : Compile Sass into CSS
@@ -86,6 +90,11 @@ const assets = require('postcss-assets');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 const mqpacker = require('css-mqpacker');
+
+// Favicons
+const realFavicon = require('gulp-real-favicon');
+const fs = require('fs');
+const FAVICON_DATA_FILE = 'faviconData.json';
 
 // -----------------------------------------------------------------
 //  Configuration objects for file/folder paths
@@ -145,6 +154,7 @@ gulp.task('build', (callback) => {
   $.runSequence(
     'clean',
     ['html', 'styles', 'scripts'],
+    // 'update:favicon',
     callback
   )
 });
@@ -152,7 +162,7 @@ gulp.task('build', (callback) => {
 // -----------------------------------------------------------------
 //  Tasks: Clean
 // -----------------------------------------------------------------
-gulp.task('clean', ['clean:dist', 'clean:tmp']);
+gulp.task('clean', ['clean:dist', 'clean:tmp', 'clean:favicon']);
 
 // Clean up DIST directory
 gulp.task('clean:dist', () => {
@@ -173,12 +183,19 @@ gulp.task('clean:images', () => {
   return $.del.sync([PATHS.DIST_IMG, PATHS.TMP_IMG]);
 });
 
+// Clean up Favicon data file
+gulp.task('clean:favicon', () => {
+  return $.del.sync(FAVICON_DATA_FILE);
+})
+
 // -----------------------------------------------------------------
 //  Tasks: Build HTML files
 // -----------------------------------------------------------------
-gulp.task('html', ['styles'], () => {
+gulp.task('html', ['styles', 'generate:favicon'], () => {
   return gulp.src(PATHS.SRC_HTML)
     .pipe($.newer(PATHS.DIST))
+    // Inject Favicon markup in HTML files
+    .pipe(realFavicon.injectFaviconMarkups(JSON.parse(fs.readFileSync(FAVICON_DATA_FILE)).favicon.html_code))
     .pipe(gulp.dest(PATHS.DIST))
     .pipe($.notify({
       message: 'Building HTML... complete!',
@@ -375,4 +392,91 @@ gulp.task('responsive-images', () => {
       message: 'Building responsive images... complete!',
       onLast: true
   }));
+});
+
+// -----------------------------------------------------------------
+//  Tasks: Generate, inject and build Favicons
+// -----------------------------------------------------------------
+gulp.task('generate:favicon', done => {
+  realFavicon.generateFavicon({
+    masterPicture: 'src/images/icons/app-icon.svg',
+    dest: 'dist/',
+    iconsPath: '/',
+    design: {
+      ios: {
+        appName: 'Restaurant Reviews',
+        assets: {
+          declareOnlyDefaultIcon: true,
+          ios6AndPriorIcons: false,
+          ios7AndLaterIcons: false,
+          precomposedIcons: false
+        },
+        backgroundColor: '#FFFFFF',
+        margin: '18%',
+        pictureAspect: 'backgroundAndMargin'
+      },
+      desktopBrowser: {},
+      windows: {
+        appName: 'Restaurant Reviews',
+        assets: {
+          windows80Ie10Tile: false,
+          windows10Ie11EdgeTiles: {
+            big: false,
+            medium: true,
+            small: false,
+            rectangle: false
+          }
+        },
+        backgroundColor: '#DA532C',
+        onConflict: 'override',
+        pictureAspect: 'noChange'
+      },
+      androidChrome: {
+        assets: {
+          legacyIcon: false,
+          lowResolutionIcons: false
+        },
+        manifest: {
+          declared: true,
+          display: 'standalone',
+          name: 'Restaurant Reviews',
+          onConflict: 'override',
+          orientation: 'notSet'
+        },
+        assets: {
+          legacyIcon: false,
+          lowResolutionIcons: false
+        }
+      },
+      safariPinnedTab: {
+        pictureAspect: 'blackAndWhite',
+        themeColor: '#0275D8',
+        threshold: 55
+      }
+    },
+    settings: {
+      compression: 2,
+      scalingAlgorithm: 'Mitchell',
+      errorOnImageTooSmall: false,
+      readmeFile: false,
+      htmlCodeFile: false,
+      usePathAsIs: false
+    },
+    markupFile: FAVICON_DATA_FILE
+  }, () => {
+    done();
+    $.notify({
+      message: 'Generating Favicons... complete!'
+    });
+  });
+});
+
+// Check RealFaviconGenerator for updates (make sure to run regularly!)
+gulp.task('update:favicon', done => {
+  const currentVersion = JSON.parse(fs.readFileSync(FAVICON_DATA_FILE)).version;
+  realFavicon.checkForUpdates(currentVersion, error => {
+    if (error) {
+      throw error;
+    }
+  });
 });
