@@ -10,7 +10,14 @@ self.addEventListener('install', (event) => {
         '/styles/styles.css',
         '/scripts/main.js',
         '/scripts/restaurant_info.js',
-        '/scripts/dbhelper.js'
+        '/scripts/dbhelper.js',
+        '/favicon.ico',
+        '/apple-touch-icon.png',
+        'images/unavailable_small.jpg',
+        'images/unavailable_small@2x.jpg',
+        'images/unavailable_medium.jpg',
+        'images/unavailable_medium@2x.jpg',
+        'images/unavailable_large.jpg'
       ]).then(() => self.skipWaiting()); // immediately activate new service workers
     })
   );
@@ -40,7 +47,7 @@ self.addEventListener('fetch', (event) => {
         return caches.open(staticCacheName).then((cache) => {
           cache.put(event.request, response.clone());
           return response;
-        })
+        });
       });
     }).catch(() => { // log error in case of failure fetching
       console.log('Currently experiencing difficulties accessing the network. Try again.');
