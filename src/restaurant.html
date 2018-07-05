@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#145b8f">
+  <meta name="apple-mobile-web-app-title" content="Restaurant Reviews">
+  <meta name="application-name" content="Restaurant Reviews">
+  <meta name="msapplication-TileColor" content="#145b8f">
+  <meta name="theme-color" content="#145b8f">
+
+  <link rel="stylesheet" href="styles/styles.css">
+
+  <title>Restaurant Info</title>
+</head>
+
+<body class="restaurant inside">
+  <header class="header">
+    <nav class="header__nav">
+      <h1 class="header__brand">
+        <a href="/">Restaurant Reviews</a>
+      </h1>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol class="breadcrumb__list" id="breadcrumb">
+        <li class="breadcrumb__item">
+          <a class="breadcrumb__link" href="/">Home</a>
+        </li>
+      </ol>
+    </nav>
+  </header>
+
+  <main class="restaurant__main">
+    <section class="restaurant-details">
+      <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
+      <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
+      <p id="restaurant-details__cuisine" class="restaurant-details__cuisine"></p>
+      <address class="restaurant-details__address" id="restaurant-details__address"></address>
+      <div class="opening-hours">
+        <h3 class="opening-hours__heading" id="opening-hours__heading">Opening Hours</h3>
+        <table class="opening-hours__table" id="opening-hours__table" aria-labelledby="opening-hours__heading"></table>
+      </div>
+    </section>
+
+    <aside class="restaurant-location" tabindex="-1">
+      <div class="restaurant-location__map" id="map" role="application"></div>
+    </aside>
+
+    <section class="reviews" id="reviews">
+      <ul class="reviews__list" id="reviews__list"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
+  </footer>
+
+  <script src="scripts/dbhelper.js"></script>
+  <script src="scripts/restaurant_info.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1xLbOrua94xzKEbuUydx9THJMhqyZTCY&libraries=places&callback=initMap"></script>
+</body>
+
+</html>

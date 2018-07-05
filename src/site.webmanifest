@@ -1,0 +1,20 @@
+{
+    "name": "Restaurant Reviews",
+    "short_name": "Reviews",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "display": "standalone",
+    "background_color": "#145b8f",
+    "theme_color": "#145b8f",
+    "start_url": "."
+}
