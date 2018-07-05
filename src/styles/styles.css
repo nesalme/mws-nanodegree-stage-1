@@ -123,6 +123,19 @@ h6 {
   height: 24em;
   width: 100%;
   background-color: #CCC;
+  display: none; /* map is hidden by default */
+}
+
+.map__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  right: 0.2em;
+}
+
+.map__icon {
+  height: 3.6em;
 }
 
 /* ============================================== */
@@ -466,6 +479,14 @@ h6 {
 }
 
 @media screen and (min-width: 425px) {
+  /* ========================= MAP ========================== */
+  /* Re-position map icon */
+  .map__toggle {
+    position: static;
+    order: 4;
+    margin-left: auto;
+  }
+
   /* ================== RESTAURANT FILTERS ================== */
   /* List filters in same row */
   .filter__options {
@@ -481,9 +502,10 @@ h6 {
   }
 
   .filter__heading {
-    font-size: 1em;
+    font-size: 0.9em;
     margin: 0.8em 0;
     flex: 0 1 auto;
+
   }
 
   .filter__dropdowns {
@@ -496,7 +518,7 @@ h6 {
     width: auto;
     flex-grow: 1 0 auto;
     margin: 0.8em 0.2em;
-    font-size: 1.2em;
+    font-size: 1.1em;
   }
 }
 
@@ -624,10 +646,6 @@ h6 {
     align-items: center;
   }
 
-  .restaurant__item {
-    
-  }
-
   .restaurant__card {
     padding: 0.6em;
     display: grid;
@@ -688,6 +706,15 @@ h6 {
 }
 
 @media screen and (min-width: 600px) {
+  /* ========================= MAP ========================== */
+  /* Re-position map icon */
+  .map__toggle {
+    height: 3em;
+    order: 0;
+    margin-left: 0;
+    margin-right: auto;
+  }
+
   /* ================== RESTAURANT FILTERS ================== */
   /* Pull filters to the right and adjust font-size */
   .filter__options {

@@ -1,5 +1,6 @@
 import { DBHelper } from './dbhelper';
 
+const mapDOM = document.getElementById('map');
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
@@ -8,6 +9,15 @@ let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
+});
+
+document.querySelector('.map__toggle').addEventListener('click', event => {
+  event.preventDefault();
+  if (mapDOM.style.display === 'none') {
+    mapDOM.style.display = 'block';
+  } else {
+    mapDOM.style.display = 'none';
+  }
 });
 
 /**
@@ -210,7 +220,6 @@ const improveMapAccessibility = () => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
-  const mapDOM = document.getElementById('map');
   let loc = {
     lat: 40.722216,
     lng: -73.987501
@@ -224,6 +233,9 @@ window.initMap = () => {
   self.map.addListener('tilesloaded', improveMapAccessibility);
 }
 
+// Expose updateRestaurants() function to window/global scope
+window.updateRestaurants = updateRestaurants;
+
 /**
  * Register service worker for offline-first
  */
@@ -235,3 +247,4 @@ if ('serviceWorker' in navigator) {
     console.log('Service worker failed to register with ', error);
   });
 }
+

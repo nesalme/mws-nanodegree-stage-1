@@ -136,7 +136,8 @@ gulp.task('serve', ['build'], () => {
   // Watch files for changes and reload
   gulp.watch(PATHS.SRC_CSS, ['styles']);
   gulp.watch(PATHS.SRC_JS, ['watch:scripts']);
-  gulp.watch(PATHS.SRC_HTML).on('change', browserSync.reload);
+  // gulp.watch(PATHS.SRC_HTML).on('change', browserSync.reload);
+  gulp.watch(PATHS.SRC_HTML, ['html']);
   gulp.watch(PATHS.SRC_IMG).on('change', browserSync.reload);
 });
 
@@ -441,7 +442,8 @@ gulp.task('generate:favicon', done => {
           display: 'standalone',
           name: 'Restaurant Reviews',
           onConflict: 'override',
-          orientation: 'notSet'
+          orientation: 'notSet',
+          startUrl: '.'
         },
         assets: {
           legacyIcon: false,
