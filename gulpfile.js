@@ -15,17 +15,20 @@
 //
 //  -> SUPPORTING TASKS
 //  $ gulp clean:dist         : Clean dist directory
-//  $ gulp clean:favicon      : Clean Favicon data file
 //  $ gulp clean:images       : Clean all images from dist and .tmp directories
 //  $ gulp clean:tmp          : Clean .tmp directory
-//  $ gulp generate:favicon   : Generate Favicons using RealFaviconGenerator
-//  $ gulp html               : Build any new/changed HTML files in dist directory                                  (with injected Favicon markup)
+//  $ gulp html               : Build any new/changed HTML files in dist directory (with injected Favicon markup)
 //  $ gulp images             : Optimize and build images (all formats)
+//  $ gulp build:pwa          : Build app icons and web manifest
 //  $ gulp responsive-images  : Optimize and build responsive images (JPEG,PNG,WebP)
 //  $ gulp scripts            : Bundle, minify and build JavaScript
 //  $ gulp styles             : Optimize and build CSS files
-//  $ gulp update:favicon     : Check RealFaviconGenerator for updates
 //  $ gulp watch:scripts      : Ensure that server reload happens at end of all JS tasks
+//
+//  -> CURRENTLY DISABLED, AIMING FOR FUTURE IMPROVEMENT:
+//  $ gulp clean:favicon      : Clean Favicon data file
+//  $ gulp generate:favicon   : Generate Favicons using RealFaviconGenerator
+//  $ gulp update:favicon     : Check RealFaviconGenerator for updates
 //
 // -----------------------------------------------------------------
 //  Modules
@@ -92,9 +95,9 @@ const cssnano = require('cssnano');
 const mqpacker = require('css-mqpacker');
 
 // Favicons
-const realFavicon = require('gulp-real-favicon');
+/* const realFavicon = require('gulp-real-favicon');
 const fs = require('fs');
-const FAVICON_DATA_FILE = 'faviconData.json';
+const FAVICON_DATA_FILE = 'faviconData.json'; */
 
 // -----------------------------------------------------------------
 //  Configuration objects for file/folder paths
@@ -111,6 +114,7 @@ const PATHS = {
   SRC_HTML: 'src/**/*.html',
   SRC_IMG: 'src/images/**/*',
   SRC_JS: 'src/**/*.js',
+  SRC_PWA: 'src/*.+(png|ico|svg|webmanifest)',
 
   // Folder paths within .TMP directory
   TMP: '.tmp',
@@ -139,6 +143,7 @@ gulp.task('serve', ['build'], () => {
   // gulp.watch(PATHS.SRC_HTML).on('change', browserSync.reload);
   gulp.watch(PATHS.SRC_HTML, ['html']);
   gulp.watch(PATHS.SRC_IMG).on('change', browserSync.reload);
+  gulp.watch(PATHS.SRC_PWA).on('change', browserSync.reload);
 });
 
 // Watch JavaScript files to ensure that reload happens at the end of JS tasks
@@ -154,16 +159,26 @@ gulp.task('watch:scripts', ['scripts'], (done) => {
 gulp.task('build', (callback) => {
   $.runSequence(
     'clean',
-    ['html', 'styles', 'scripts'],
+    ['html', 'styles', 'scripts', 'build:pwa'],
     // 'update:favicon',
     callback
   )
 });
 
+// Build Progressive Web Application files (icons and web manifest)
+gulp.task('build:pwa', () => {
+  return gulp.src(PATHS.SRC_PWA)
+    .pipe(gulp.dest(PATHS.DIST))
+    .pipe($.notify({
+      message: 'Building PWA files... complete!',
+      onLast: true
+    }));
+});
+
 // -----------------------------------------------------------------
 //  Tasks: Clean
 // -----------------------------------------------------------------
-gulp.task('clean', ['clean:dist', 'clean:tmp', 'clean:favicon']);
+gulp.task('clean', ['clean:dist', 'clean:tmp'/* , 'clean:favicon' */]);
 
 // Clean up DIST directory
 gulp.task('clean:dist', () => {
@@ -185,18 +200,18 @@ gulp.task('clean:images', () => {
 });
 
 // Clean up Favicon data file
-gulp.task('clean:favicon', () => {
-  return $.del.sync(FAVICON_DATA_FILE);
-})
+// gulp.task('clean:favicon', () => {
+//   return $.del.sync(FAVICON_DATA_FILE);
+// })
 
 // -----------------------------------------------------------------
 //  Tasks: Build HTML files
 // -----------------------------------------------------------------
-gulp.task('html', ['styles', 'generate:favicon'], () => {
+gulp.task('html', ['styles'/* , 'generate:favicon' */], () => {
   return gulp.src(PATHS.SRC_HTML)
     .pipe($.newer(PATHS.DIST))
     // Inject Favicon markup in HTML files
-    .pipe(realFavicon.injectFaviconMarkups(JSON.parse(fs.readFileSync(FAVICON_DATA_FILE)).favicon.html_code))
+    // .pipe(realFavicon.injectFaviconMarkups(JSON.parse(fs.readFileSync(FAVICON_DATA_FILE)).favicon.html_code))
     .pipe(gulp.dest(PATHS.DIST))
     .pipe($.notify({
       message: 'Building HTML... complete!',
@@ -398,7 +413,7 @@ gulp.task('responsive-images', () => {
 // -----------------------------------------------------------------
 //  Tasks: Generate, inject and build Favicons
 // -----------------------------------------------------------------
-gulp.task('generate:favicon', done => {
+/* gulp.task('generate:favicon', done => {
   realFavicon.generateFavicon({
     masterPicture: 'src/images/icons/app-icon.svg',
     dest: 'dist/',
@@ -443,7 +458,8 @@ gulp.task('generate:favicon', done => {
           name: 'Restaurant Reviews',
           onConflict: 'override',
           orientation: 'notSet',
-          startUrl: '.'
+          startUrl: '.',
+          themeColor: '#145B8F'
         },
         assets: {
           legacyIcon: false,
@@ -481,4 +497,4 @@ gulp.task('update:favicon', done => {
       throw error;
     }
   });
-});
+}); */
