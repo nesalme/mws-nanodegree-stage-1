@@ -124,13 +124,13 @@ const PATHS = {
 // -----------------------------------------------------------------
 //  Tasks: Default (build and start development server)
 // -----------------------------------------------------------------
-gulp.task('default', ['serve']);
+gulp.task('default', ['build', 'serve']);
 
 // -----------------------------------------------------------------
 //  Tasks: Start BrowserSync server for development and watch files
 //         for changes
 // -----------------------------------------------------------------
-gulp.task('serve', ['build'], () => {
+gulp.task('serve', () => {
   browserSync.init({
     server: {baseDir: 'dist'},
     port: 8000,

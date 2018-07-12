@@ -216,6 +216,12 @@ h6 {
   align-items: stretch;
   justify-content: space-between;
   overflow: hidden;
+
+  position: relative;
+}
+
+.restaurant__picture {
+  position: relative;
 }
 
 .restaurant__img {
@@ -225,6 +231,26 @@ h6 {
   object-fit: cover;
   overflow: hidden;
   border-radius: 9px 9px 0 0;
+}
+
+.restaurant__picture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* background-image: linear-gradient(to top, transparent, rgba(0, 0, 0, 0.4)); */
+  background-image: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.3));
+}
+
+.restaurant__favorite {
+  fill: #A32C00;
+  height: 2em;
+  width: 2em;
+  position: absolute;
+  top: 0.8em;
+  right: 0.8em;
 }
 
 .restaurant__name {
@@ -312,16 +338,32 @@ h6 {
   text-align: center;
 }
 
-.restaurant-details__picture {
-  width: 90%;
+.restaurant-details__image-box {
   height: 40vmax;
-  margin: 0 auto;
+  margin: 0 auto 2em;
+  padding: 0;
+  position: relative;
+  width: 90%;
+}
+
+.restaurant-details__favorite {
+  fill: #A32C00;
+  height: 1.6em;
+  position: absolute;
+  right: 0.5em;
+  top: 0.5em;
+  width: 1.6em;
+}
+
+.restaurant-details__picture {
+  margin: 0;
 }
 
 .restaurant-details__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .restaurant-details__cuisine {
@@ -331,9 +373,10 @@ h6 {
   font-weight: 300;
   letter-spacing: 0.6em;
   text-transform: uppercase;
-  width: 90%;
+  width: 100%;
   margin: 0 0 1em;
   padding: 2px 0;
+  /* top: -2em; */
 
   display: flex;
   justify-content: center;
@@ -341,7 +384,7 @@ h6 {
 }
 
 .restaurant-details__address {
-  margin: 1em 0;
+  margin: 2em 0;
   font-size: 1.3em;
   line-height: 1.3;
   text-align: center;

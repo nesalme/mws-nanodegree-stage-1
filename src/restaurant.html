@@ -39,9 +39,15 @@
   <main class="restaurant__main">
     <section class="restaurant-details">
       <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
-      <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
-      <p id="restaurant-details__cuisine" class="restaurant-details__cuisine"></p>
+
+      <div class="restaurant-details__image-box">
+        <svg class="restaurant-details__favorite" id="restaurant-details__favorite"></svg>
+        <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
+        <p class="restaurant-details__cuisine" id="restaurant-details__cuisine"></p>
+      </div>
+
       <address class="restaurant-details__address" id="restaurant-details__address"></address>
+
       <div class="opening-hours">
         <h3 class="opening-hours__heading" id="opening-hours__heading">Opening Hours</h3>
         <table class="opening-hours__table" id="opening-hours__table" aria-labelledby="opening-hours__heading"></table>

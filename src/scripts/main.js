@@ -143,6 +143,8 @@ const createRestaurantHTML = (restaurant) => {
 
   const PICTURE = document.createElement('picture');
   const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
+  const OVERLAY = document.createElement('div');
+  OVERLAY.className = 'restaurant__picture-overlay';
   PICTURE.className = 'restaurant__picture';
   PICTURE.innerHTML =
     `<source
@@ -163,7 +165,15 @@ const createRestaurantHTML = (restaurant) => {
       srcset="${PICTURE_URL}_small.jpg 1x,
               ${PICTURE_URL}_small@2x.jpg 2x"
       src="${PICTURE_URL}_small.jpg">`;
+  PICTURE.appendChild(OVERLAY);
   CARD.append(PICTURE);
+
+  const FAVORITE_SVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  FAVORITE_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
+  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', 'images/icons/sprite.svg#icon-not-favorite');
+  FAVORITE_SVG.appendChild(FAVORITE_USE);
+  CARD.append(FAVORITE_SVG);
 
   const NAME = document.createElement('h3');
   NAME.className = 'restaurant__name';
