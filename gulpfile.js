@@ -124,7 +124,13 @@ const PATHS = {
 // -----------------------------------------------------------------
 //  Tasks: Default (build and start development server)
 // -----------------------------------------------------------------
-gulp.task('default', ['build', 'serve']);
+gulp.task('default', (callback) => {
+  $.runSequence(
+    'build',
+    'serve',
+    callback
+  )
+});
 
 // -----------------------------------------------------------------
 //  Tasks: Start BrowserSync server for development and watch files
