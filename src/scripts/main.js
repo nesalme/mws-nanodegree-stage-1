@@ -1,6 +1,6 @@
 import { DBHelper } from './dbhelper';
 
-const mapDOM = document.getElementById('map');
+const MAP_DOM = document.getElementById('map');
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
@@ -11,14 +11,39 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchCuisines();
 });
 
-document.querySelector('.map__toggle').addEventListener('click', event => {
-  event.preventDefault();
-  if (mapDOM.style.display === 'none') {
-    mapDOM.style.display = 'block';
+/**
+ * Handle click events on the entire page
+ */
+document.addEventListener('click', event => {
+  /* Handle click event on favorite icon */
+  if (event.target.matches('.restaurant__icon-anchor')) {
+    event.preventDefault();
+
+    const XLINK_NS = 'http://www.w3.org/1999/xlink';
+    const ICONS_LINK = 'images/icons/sprite.svg#icon-';
+    const ICON_NODE = event.target.firstChild.firstChild; // ie, <use>
+    const CURRENT_ICON = ICON_NODE.getAttributeNS(XLINK_NS, 'href');
+    const CURRENT_ID = event.target.closest('.restaurant__card').querySelector('.restaurant__more').getAttribute('href').split('id=').pop(); // grab restaurant id from restaurant url
+
+    console.log('Current restaurant id:', CURRENT_ID); // development only
+
+    // Switch between not-favorite and favorite icons
+    ICON_NODE.setAttributeNS(XLINK_NS, 'xlink:href', `${ICONS_LINK}${CURRENT_ICON.includes('#icon-not-favorite') ? 'favorite' : 'not-favorite'}`);
+
+  /* Handle click event on map icon */
+  } else if (event.target.matches('.map__icon')) {
+      event.preventDefault();
+
+      if (MAP_DOM.style.display === 'none') {
+        MAP_DOM.style.display = 'block';
+      } else {
+        MAP_DOM.style.display = 'none';
+      }
+  /* Ignore all other click events */
   } else {
-    mapDOM.style.display = 'none';
+    return;
   }
-});
+}, false);
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -168,12 +193,15 @@ const createRestaurantHTML = (restaurant) => {
   PICTURE.appendChild(OVERLAY);
   CARD.append(PICTURE);
 
+  const FAVORITE_BOX = document.createElement('a');
+  FAVORITE_BOX.className = 'restaurant__icon-anchor';
   const FAVORITE_SVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
   FAVORITE_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
-  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', 'images/icons/sprite.svg#icon-not-favorite');
+  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `images/icons/sprite.svg#icon-${DBHelper.isFavorite(restaurant) ? 'favorite' : 'not-favorite'}`);
   FAVORITE_SVG.appendChild(FAVORITE_USE);
-  CARD.append(FAVORITE_SVG);
+  FAVORITE_BOX.appendChild(FAVORITE_SVG);
+  CARD.append(FAVORITE_BOX);
 
   const NAME = document.createElement('h3');
   NAME.className = 'restaurant__name';
@@ -234,7 +262,7 @@ window.initMap = () => {
     lat: 40.722216,
     lng: -73.987501
   };
-  self.map = new google.maps.Map(mapDOM, {
+  self.map = new google.maps.Map(MAP_DOM, {
     zoom: 12,
     center: loc,
     scrollwheel: false

@@ -276,4 +276,15 @@ export class DBHelper {
       el.setAttribute('title', 'Restaurant locations on Google Maps');
     });
   }
+
+  /**
+   * Check if restaurant is favorite to return appropriate icon
+   */
+  static isFavorite(restaurant) {
+    if (restaurant.is_favorite) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

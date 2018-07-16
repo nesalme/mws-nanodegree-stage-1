@@ -22,6 +22,21 @@ window.initMap = () => {
   });
 }
 
+document.addEventListener('click', event => {
+  // Handle click event on favorite icon
+  if (event.target.matches('.restaurant__icon-anchor')) {
+    event.preventDefault();
+
+    const XLINK_NS = 'http://www.w3.org/1999/xlink';
+    const ICONS_LINK = 'images/icons/sprite.svg#icon-';
+    const ICON = document.getElementById('restaurant__favorite').firstChild; // ie, <use>
+    const ICON_XLINK = ICON.getAttributeNS(XLINK_NS, 'href');
+
+    // Switch between not-favorite and favorite icons
+    ICON.setAttributeNS(XLINK_NS, 'xlink:href', `${ICONS_LINK}${ICON_XLINK.includes('#icon-not-favorite') ? 'favorite' : 'not-favorite'}`);
+  }
+});
+
 /**
  * Get current restaurant from page URL.
  */
@@ -55,10 +70,16 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   const NAME = document.getElementById('restaurant-details__name');
   NAME.innerHTML = restaurant.name;
 
-  const FAVORITE = document.getElementById('restaurant-details__favorite');
+  /* const FAVORITE = document.getElementById('restaurant__favorite');
   const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
   FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', 'images/icons/sprite.svg#icon-not-favorite');
-  FAVORITE.appendChild(FAVORITE_USE);
+  FAVORITE.appendChild(FAVORITE_USE); */
+
+  const FAVORITE_BOX = document.getElementById('restaurant__icon-anchor');
+  const FAVORITE_SVG = document.getElementById('restaurant__favorite');
+  const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `images/icons/sprite.svg#icon-${DBHelper.isFavorite(restaurant) ? 'favorite' : 'not-favorite'}`);
+  FAVORITE_SVG.appendChild(FAVORITE_USE);
 
   const ADDRESS = document.getElementById('restaurant-details__address');
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
