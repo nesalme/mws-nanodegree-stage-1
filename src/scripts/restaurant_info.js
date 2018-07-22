@@ -1,5 +1,13 @@
 import { DBHelper } from './dbhelper';
 
+const URLS = {
+  // Namespace links
+  xlink:            'http://www.w3.org/1999/xlink',
+  // Icons
+  favoriteIcon:     'images/icons/sprite.svg#icon-favorite',
+  notFavoriteIcon:  'images/icons/sprite.svg#icon-not-favorite'
+};
+
 let restaurant, map;
 
 /**
@@ -21,21 +29,6 @@ window.initMap = () => {
     }
   });
 }
-
-document.addEventListener('click', event => {
-  // Handle click event on favorite icon
-  if (event.target.matches('.restaurant__icon-anchor')) {
-    event.preventDefault();
-
-    const XLINK_NS = 'http://www.w3.org/1999/xlink';
-    const ICONS_LINK = 'images/icons/sprite.svg#icon-';
-    const ICON = document.getElementById('restaurant__favorite').firstChild; // ie, <use>
-    const ICON_XLINK = ICON.getAttributeNS(XLINK_NS, 'href');
-
-    // Switch between not-favorite and favorite icons
-    ICON.setAttributeNS(XLINK_NS, 'xlink:href', `${ICONS_LINK}${ICON_XLINK.includes('#icon-not-favorite') ? 'favorite' : 'not-favorite'}`);
-  }
-});
 
 /**
  * Get current restaurant from page URL.
@@ -67,23 +60,25 @@ const fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 const fillRestaurantHTML = (restaurant = self.restaurant) => {
+  // Fill restaurant name
   const NAME = document.getElementById('restaurant-details__name');
   NAME.innerHTML = restaurant.name;
 
-  /* const FAVORITE = document.getElementById('restaurant__favorite');
-  const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', 'images/icons/sprite.svg#icon-not-favorite');
-  FAVORITE.appendChild(FAVORITE_USE); */
+  // Add clickable icon to (un)favorite restaurant
+  // (icon within anchor element to improve user interaction - ie, increased clickable area)
+  const FAV_ANCHOR = document.getElementById('restaurant__icon-anchor');
+  FAV_ANCHOR.onclick = (event) => handleFavoriteClick(event, restaurant);
 
-  const FAVORITE_BOX = document.getElementById('restaurant__icon-anchor');
-  const FAVORITE_SVG = document.getElementById('restaurant__favorite');
-  const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `images/icons/sprite.svg#icon-${DBHelper.isFavorite(restaurant) ? 'favorite' : 'not-favorite'}`);
-  FAVORITE_SVG.appendChild(FAVORITE_USE);
+  const FAV_TITLE = document.getElementById('restaurant__favorite-title');
+  FAV_TITLE.innerHTML = DBHelper.isFavorite(restaurant) ? 'Favorite restaurant' : 'Not favorite restaurant';
 
-  const ADDRESS = document.getElementById('restaurant-details__address');
-  ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
+  const FAV_DESC = document.getElementById('restaurant__favorite-desc');
+  FAV_DESC.innerHTML = DBHelper.isFavorite(restaurant) ? 'Click to unfavorite' : 'Click to favorite';
 
+  const FAV_USE = document.getElementById('restaurant__favorite-use');
+  FAV_USE.setAttributeNS(URLS.xlink, 'xlink:href', selectIcon(restaurant));
+
+  // Fill responsive restaurant image
   const PICTURE = document.getElementById('restaurant-details__picture');
   const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
   PICTURE.innerHTML =
@@ -117,14 +112,19 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
               ${PICTURE_URL}_small@2x.jpg 2x"
       src="${PICTURE_URL}_small.jpg">`;
 
+  // Fill restaurant cuisine
   const CUISINE = document.getElementById('restaurant-details__cuisine');
   CUISINE.innerHTML = restaurant.cuisine_type;
 
-  // fill operating hours
+  // Fill restaurant address
+  const ADDRESS = document.getElementById('restaurant-details__address');
+  ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>'); // alter address from db for UI
+
+  // Fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
-  // fill reviews
+  // Fill reviews
   fillReviewsHTML();
 }
 
@@ -251,3 +251,45 @@ const improveMapAccessibility = () => {
     DBHelper.removeMapsTabOrder();
   }, 1000);
 }
+
+/**
+  * Select appropriate (un)favorite icon depending on database value
+  */
+ const selectIcon = (restaurant) => {
+  if (DBHelper.isFavorite(restaurant)) {return URLS.favoriteIcon;}
+  return URLS.notFavoriteIcon;
+};
+
+/**
+  * Handle click on a restaurant's favorite icon
+  */
+const handleFavoriteClick = (event, restaurant) => {
+  const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
+  const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
+
+  // For debugging only
+  // console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
+  // console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
+
+  // For debugging only
+  // console.log('Event target:', event.target);
+  // console.log('Restaurant ID:', restaurant.id);
+  // console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
+
+  // Change icon in the UI
+  toggleFavoriteIcon(event.target);
+
+  // Update database
+  DBHelper.updateFavorite(restaurant.id, NEW_FAV_STATUS);
+};
+
+/**
+  * Toggle favorite icon
+  */
+const toggleFavoriteIcon = (target) => {
+  const ICON_NODE = document.getElementById('restaurant__favorite-use'); // ie, <use>
+  const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
+  const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
+
+  ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
+};

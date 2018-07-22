@@ -42,7 +42,11 @@
 
       <div class="restaurant-details__image-box">
         <a class="restaurant__icon-anchor" id="restaurant__icon-anchor">
-          <svg class="restaurant__favorite" id="restaurant__favorite"></svg>
+          <svg class="restaurant__favorite" id="restaurant__favorite" aria-labelledby="restaurant__favorite-title" aria-describedby="restaurant__favorite-desc">
+            <title id="restaurant__favorite-title"></title>
+            <desc id="restaurant__favorite-desc"></desc>
+            <use id="restaurant__favorite-use"></use>
+          </svg>
         </a>
         <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
         <p class="restaurant-details__cuisine" id="restaurant-details__cuisine"></p>
