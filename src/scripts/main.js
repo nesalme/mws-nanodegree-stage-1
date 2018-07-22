@@ -1,6 +1,16 @@
 import { DBHelper } from './dbhelper';
 
 const MAP_DOM = document.getElementById('map');
+
+const URLS = {
+  // Namespace links
+  svg:              'http://www.w3.org/2000/svg',
+  xlink:            'http://www.w3.org/1999/xlink',
+  // Icons
+  favoriteIcon:     'images/icons/sprite.svg#icon-favorite',
+  notFavoriteIcon:  'images/icons/sprite.svg#icon-not-favorite'
+};
+
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
 /**
@@ -12,33 +22,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 });
 
 /**
- * Handle click events on the entire page
+ * Handle click events on the entire page (minus click on favorite icon)
  */
 document.addEventListener('click', event => {
-  /* Handle click event on favorite icon */
-  if (event.target.matches('.restaurant__icon-anchor')) {
-    event.preventDefault();
-
-    const XLINK_NS = 'http://www.w3.org/1999/xlink';
-    const ICONS_LINK = 'images/icons/sprite.svg#icon-';
-    const ICON_NODE = event.target.firstChild.firstChild; // ie, <use>
-    const CURRENT_ICON = ICON_NODE.getAttributeNS(XLINK_NS, 'href');
-    const CURRENT_ID = event.target.closest('.restaurant__card').querySelector('.restaurant__more').getAttribute('href').split('id=').pop(); // grab restaurant id from restaurant url
-
-    console.log('Current restaurant id:', CURRENT_ID); // development only
-
-    // Switch between not-favorite and favorite icons
-    ICON_NODE.setAttributeNS(XLINK_NS, 'xlink:href', `${ICONS_LINK}${CURRENT_ICON.includes('#icon-not-favorite') ? 'favorite' : 'not-favorite'}`);
-
   /* Handle click event on map icon */
-  } else if (event.target.matches('.map__icon')) {
+  if (event.target.matches('.map__icon')) {
       event.preventDefault();
+      toggleMap();
 
-      if (MAP_DOM.style.display === 'none') {
-        MAP_DOM.style.display = 'block';
-      } else {
-        MAP_DOM.style.display = 'none';
-      }
   /* Ignore all other click events */
   } else {
     return;
@@ -154,18 +145,21 @@ const fillRestaurantsHTML = (restaurants = self.restaurants) => {
 }
 
 /**
- * Create restaurant HTML.
+ * Create HTML for each restaurant.
  */
 const createRestaurantHTML = (restaurant) => {
+  // Add restaurant list item
   const LI = document.createElement('li');
   LI.className = 'restaurant__item';
 
+  // Add restaurant card
   const CARD = document.createElement('section');
   CARD.className = 'restaurant__card';
   CARD.setAttribute('aria-label', `${restaurant.name}`);
   CARD.setAttribute('tabindex', '0');
   LI.append(CARD);
 
+  // Add picture element with responsive restaurant image
   const PICTURE = document.createElement('picture');
   const PICTURE_URL = DBHelper.imageUrlForRestaurant(restaurant);
   const OVERLAY = document.createElement('div');
@@ -193,31 +187,42 @@ const createRestaurantHTML = (restaurant) => {
   PICTURE.appendChild(OVERLAY);
   CARD.append(PICTURE);
 
-  const FAVORITE_BOX = document.createElement('a');
-  FAVORITE_BOX.className = 'restaurant__icon-anchor';
-  const FAVORITE_SVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  const FAVORITE_USE = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  FAVORITE_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
-  FAVORITE_USE.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `images/icons/sprite.svg#icon-${DBHelper.isFavorite(restaurant) ? 'favorite' : 'not-favorite'}`);
-  FAVORITE_SVG.appendChild(FAVORITE_USE);
-  FAVORITE_BOX.appendChild(FAVORITE_SVG);
-  CARD.append(FAVORITE_BOX);
+  // Add clickable icon to (un)favorite restaurant
+  // (icon within anchor element to improve user interaction - ie, increased clickable area)
+  const FAV_ANCHOR = document.createElement('a');
+  FAV_ANCHOR.className = 'restaurant__icon-anchor';
+  const FAV_SVG = document.createElementNS(URLS.svg, 'svg');
+  FAV_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
+  const FAV_USE = document.createElementNS(URLS.svg, 'use');
+  FAV_USE.setAttributeNS(URLS.xlink, 'xlink:href', selectIcon(restaurant));
 
+  console.log(`${restaurant.name} is favorite? -- ${restaurant.is_favorite} (${typeof restaurant.is_favorite})`);
+
+  FAV_ANCHOR.onclick = (event) => handleFavoriteClick(event, restaurant);
+
+  FAV_SVG.appendChild(FAV_USE);
+  FAV_ANCHOR.appendChild(FAV_SVG);
+  CARD.append(FAV_ANCHOR);
+
+  // Add restaurant name
   const NAME = document.createElement('h3');
   NAME.className = 'restaurant__name';
   NAME.innerHTML = restaurant.name;
   CARD.append(NAME);
 
+  // Add restaurant neighborhood
   const NEIGHBORHOOD = document.createElement('p');
   NEIGHBORHOOD.className = 'restaurant__neighborhood';
   NEIGHBORHOOD.innerHTML = restaurant.neighborhood;
   CARD.append(NEIGHBORHOOD);
 
+  // Add restaurant address
   const ADDRESS = document.createElement('address');
   ADDRESS.className = 'restaurant__address';
   ADDRESS.innerHTML = restaurant.address.replace(/ *, */g, '<br>');
   CARD.append(ADDRESS);
 
+  // Add link to restaurant details & review page
   const MORE = document.createElement('a');
   MORE.className = 'restaurant__more';
   MORE.innerHTML = 'More details';
@@ -227,6 +232,48 @@ const createRestaurantHTML = (restaurant) => {
 
   return LI;
 }
+
+/**
+  * Select appropriate (un)favorite icon depending on database value
+  */
+const selectIcon = (restaurant) => {
+  if (DBHelper.isFavorite(restaurant)) {return URLS.favoriteIcon;}
+  return URLS.notFavoriteIcon;
+};
+
+/**
+  * Handle click on a restaurant's favorite icon
+  */
+const handleFavoriteClick = (event, restaurant) => {
+  const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
+  const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
+
+  // For debugging only
+  console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
+  console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
+
+  // For debugging only
+  console.log('Event target:', event.target);
+  console.log('Restaurant ID:', restaurant.id);
+  console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
+
+  // Change icon in the UI
+  toggleFavoriteIcon(event.target);
+
+  // Update database
+  DBHelper.updateFavorite(restaurant.id, NEW_FAV_STATUS);
+};
+
+/**
+  * Toggle favorite icon
+  */
+const toggleFavoriteIcon = (target) => {
+  const ICON_NODE = target.firstChild.firstChild; // ie, <use>
+  const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
+  const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
+
+  ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
+};
 
 /**
  * Add markers for current restaurants to the map.
@@ -253,6 +300,13 @@ const improveMapAccessibility = () => {
     DBHelper.removeMapsTabOrder();
   }, 1000);
 }
+
+/**
+  * Toggle map on click
+  */
+const toggleMap = () => {
+  MAP_DOM.style.display = MAP_DOM.style.display === 'block' ? 'none' : 'block';
+};
 
 /**
  * Initialize Google map, called from HTML.

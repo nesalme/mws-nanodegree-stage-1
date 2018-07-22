@@ -31,8 +31,9 @@ export class DBHelper {
 
       // Create object store for restaurant data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('restaurants')) {
-        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
-        console.log('Created new object store restaurants');
+        console.log('Creating new object store: restaurants');
+        const restaurantOS = upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
+        restaurantOS.createIndex('id', 'id', {unique: true});
       }
     });
   }
@@ -40,7 +41,7 @@ export class DBHelper {
   /**
    * Update IndexedDB cache.
    */
-  static updateIndexedDB(data) {
+  static addToIndexedDB(data) {
     DBHelper.openIndexedDB()
       .then(db => {
         const tx = db.transaction('restaurants', 'readwrite');
@@ -82,7 +83,7 @@ export class DBHelper {
     }).then(response => response.json())
       .then(data => {
         // Update IndexedDB database with fresh data fetched from API and return.
-        DBHelper.updateIndexedDB(data);
+        DBHelper.addToIndexedDB(data);
         return data;
       })
       .catch(error => console.log('Request failed:', error));
@@ -281,10 +282,48 @@ export class DBHelper {
    * Check if restaurant is favorite to return appropriate icon
    */
   static isFavorite(restaurant) {
-    if (restaurant.is_favorite) {
-      return true;
-    } else {
+    if (restaurant.is_favorite === false || restaurant.is_favorite === 'false') {
       return false;
+    } else {
+      return true;
     }
+  }
+
+  /**
+    * Update favorite information
+    */
+  static updateFavorite(restaurantID, newFavoriteStatus) {
+    // For debugging
+    console.log('Updating favorite information');
+    console.log(typeof newFavoriteStatus);
+
+    const url = `${DBHelper.DATABASE_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
+
+    fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({is_favorite: newFavoriteStatus})
+      })
+      .then(response => {return response.json();})
+      .then(data => DBHelper.updateIndexedDB(data))
+      .catch(error => console.warn('[ERROR]:', error));
+  }
+
+  /**
+    * Update existing record in IndexedDB database
+    */
+  static updateIndexedDB(data) {
+    DBHelper.openIndexedDB()
+      .then(db => {
+        const tx = db.transaction('restaurants', 'readwrite');
+        const store = tx.objectStore('restaurants');
+        
+        store.put(data);
+
+        return tx.complete;
+    });
   }
 }
