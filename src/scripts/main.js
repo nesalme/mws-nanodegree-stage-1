@@ -191,15 +191,31 @@ const createRestaurantHTML = (restaurant) => {
   // (icon within anchor element to improve user interaction - ie, increased clickable area)
   const FAV_ANCHOR = document.createElement('a');
   FAV_ANCHOR.className = 'restaurant__icon-anchor';
+
   const FAV_SVG = document.createElementNS(URLS.svg, 'svg');
   FAV_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
+  FAV_SVG.setAttributeNS(null, 'aria-labelledby', `svg-title-${restaurant.id}`);
+  FAV_SVG.setAttributeNS(null, 'aria-describedby', `svg-desc-${restaurant.id}`);
+
+  const FAV_TITLE = document.createElementNS(URLS.svg, 'title');
+  FAV_TITLE.setAttributeNS(null, 'id', `svg-title-${restaurant.id}`);
+  FAV_TITLE.innerHTML = DBHelper.isFavorite(restaurant) ? 'Favorite restaurant' : 'Not favorite restaurant';
+
+  const FAV_DESCRIPTION = document.createElementNS(URLS.svg, 'desc');
+  FAV_DESCRIPTION.setAttributeNS(null, 'id', `svg-desc-${restaurant.id}`);
+  FAV_DESCRIPTION.innerHTML = DBHelper.isFavorite(restaurant) ? 'Click to unfavorite' : 'Click to favorite';
+
   const FAV_USE = document.createElementNS(URLS.svg, 'use');
+  FAV_USE.setAttributeNS(null, 'id', `restaurant__favorite-use-${restaurant.id}`);
   FAV_USE.setAttributeNS(URLS.xlink, 'xlink:href', selectIcon(restaurant));
 
-  console.log(`${restaurant.name} is favorite? -- ${restaurant.is_favorite} (${typeof restaurant.is_favorite})`);
+  // For debugging:
+  // console.log(`${restaurant.name} is favorite? -- ${restaurant.is_favorite} (${typeof restaurant.is_favorite})`);
 
   FAV_ANCHOR.onclick = (event) => handleFavoriteClick(event, restaurant);
 
+  FAV_SVG.appendChild(FAV_TITLE);
+  FAV_SVG.appendChild(FAV_DESCRIPTION);
   FAV_SVG.appendChild(FAV_USE);
   FAV_ANCHOR.appendChild(FAV_SVG);
   CARD.append(FAV_ANCHOR);
@@ -249,16 +265,16 @@ const handleFavoriteClick = (event, restaurant) => {
   const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
 
   // For debugging only
-  console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
-  console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
+  // console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
+  // console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
 
   // For debugging only
-  console.log('Event target:', event.target);
-  console.log('Restaurant ID:', restaurant.id);
-  console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
+  // console.log('Event target:', event.target);
+  // console.log('Restaurant ID:', restaurant.id);
+  // console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
 
   // Change icon in the UI
-  toggleFavoriteIcon(event.target);
+  toggleFavoriteIcon(event.target, restaurant.id);
 
   // Update database
   DBHelper.updateFavorite(restaurant.id, NEW_FAV_STATUS);
@@ -267,8 +283,8 @@ const handleFavoriteClick = (event, restaurant) => {
 /**
   * Toggle favorite icon
   */
-const toggleFavoriteIcon = (target) => {
-  const ICON_NODE = target.firstChild.firstChild; // ie, <use>
+const toggleFavoriteIcon = (target, id) => {
+  const ICON_NODE = document.getElementById(`restaurant__favorite-use-${id}`);
   const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
   const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
 

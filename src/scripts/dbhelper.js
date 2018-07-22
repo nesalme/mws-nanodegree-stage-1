@@ -299,11 +299,13 @@ export class DBHelper {
 
     const url = `${DBHelper.DATABASE_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
 
+    console.log(JSON.stringify({is_favorite: newFavoriteStatus}));
+
     fetch(url, {
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json; charset=utf-8'
       },
       body: JSON.stringify({is_favorite: newFavoriteStatus})
       })
@@ -320,7 +322,7 @@ export class DBHelper {
       .then(db => {
         const tx = db.transaction('restaurants', 'readwrite');
         const store = tx.objectStore('restaurants');
-        
+
         store.put(data);
 
         return tx.complete;
