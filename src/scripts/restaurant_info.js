@@ -190,13 +190,15 @@ const fillReviewsHTML = (error, reviews) => {
  * Create review HTML and add it to the webpage.
  */
 const createReviewHTML = (review) => {
+  const REVIEW_DATE = DBHelper.formatDate(review.updatedAt);
+
   const LI = document.createElement('li');
   LI.className = 'reviews__item';
 
   const ARTICLE = document.createElement('article');
   ARTICLE.className = 'review';
   ARTICLE.setAttribute('role', 'article');
-  ARTICLE.setAttribute('aria-label', `Review by ${review.name} on ${review.date}`);
+  ARTICLE.setAttribute('aria-label', `Review by ${review.name} on ${REVIEW_DATE}`);
   LI.appendChild(ARTICLE);
 
   const NAME = document.createElement('p');
@@ -212,7 +214,7 @@ const createReviewHTML = (review) => {
 
   const DATE = document.createElement('p');
   DATE.className = 'review__date';
-  DATE.innerHTML = review.date;
+  DATE.innerHTML = REVIEW_DATE;
   DATE.setAttribute('aria-hidden', 'true');
   ARTICLE.appendChild(DATE);
 
@@ -303,23 +305,4 @@ const toggleFavoriteIcon = (target) => {
   const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
 
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
-};
-
-const fetchReviewsByRestaurantID = (callback, restaurant = self.restaurant) => {
-  if (!restaurant.id) {
-    error = 'No restaurant found!';
-    callback(error, null);
-  }
-
-  DBHelper.fetchReviews(restaurant.id, (error, reviews) => {
-    console.log('Fetching reviews for restaurant:', restaurant.id);
-    self.reviews = reviews;
-
-    if (!reviews) {
-      console.log(error);
-      return;
-    }
-
-    callback(null, reviews);
-  });
 };

@@ -380,4 +380,14 @@ export class DBHelper {
         return tx.complete;
     });
   }
+
+  static formatDate(input) {
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
+    return new Date(input).toLocaleDateString('en-US', options);
+  }
 }
