@@ -24,6 +24,9 @@ window.initMap = () => {
         scrollwheel: false
       });
       fillBreadcrumb();
+      // fetchReviewsByRestaurantID((error) => {
+      //   if (error) {console.error(error);}
+      // });
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
       self.map.addListener('tilesloaded', improveMapAccessibility);
     }
@@ -125,7 +128,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // Fill reviews
-  fillReviewsHTML();
+  DBHelper.fetchReviews(restaurant.id, fillReviewsHTML);
 }
 
 /**
@@ -155,8 +158,14 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
-  const CONTAINER = document.getElementById('reviews');
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log(`Error fetching reviews for ${restaurant.name}:`, error);
+  }
+
+  const CONTAINER = document.getElementById('reviews__container');
   const TITLE = document.createElement('h3');
   TITLE.className = 'reviews__heading';
   TITLE.innerHTML = 'Reviews';
@@ -169,9 +178,11 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const UL = document.getElementById('reviews__list');
+
   reviews.forEach(review => {
     UL.appendChild(createReviewHTML(review));
   });
+
   CONTAINER.appendChild(UL);
 }
 
@@ -216,7 +227,7 @@ const createReviewHTML = (review) => {
 /**
  * Add restaurant name to the breadcrumb navigation menu
  */
-const fillBreadcrumb = (restaurant=self.restaurant) => {
+const fillBreadcrumb = (restaurant = self.restaurant) => {
   const BREADCRUMB = document.getElementById('breadcrumb');
   const LI = document.createElement('li');
   LI.innerHTML = restaurant.name;
@@ -292,4 +303,23 @@ const toggleFavoriteIcon = (target) => {
   const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
 
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
+};
+
+const fetchReviewsByRestaurantID = (callback, restaurant = self.restaurant) => {
+  if (!restaurant.id) {
+    error = 'No restaurant found!';
+    callback(error, null);
+  }
+
+  DBHelper.fetchReviews(restaurant.id, (error, reviews) => {
+    console.log('Fetching reviews for restaurant:', restaurant.id);
+    self.reviews = reviews;
+
+    if (!reviews) {
+      console.log(error);
+      return;
+    }
+
+    callback(null, reviews);
+  });
 };

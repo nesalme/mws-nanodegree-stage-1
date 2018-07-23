@@ -5,12 +5,19 @@ import idb from 'idb';
  */
 export class DBHelper {
   /**
-   * Database URL.
-   * Change this to restaurants.json file location on your server.
+   * Database URL to fetch restaurants data.
    */
-  static get DATABASE_URL() {
+  static get RESTAURANTS_DB_URL() {
     const PORT = 1337; // Change this to your server port
     return `http://localhost:${PORT}/restaurants`;
+  }
+
+  /**
+   * Database URL to fetch reviews data.
+   */
+  static get REVIEWS_DB_URL() {
+    const PORT = 1337; // Change this to your server port
+    return `http://localhost:${PORT}/reviews`
   }
 
   /**
@@ -32,8 +39,14 @@ export class DBHelper {
       // Create object store for restaurant data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('restaurants')) {
         console.log('Creating new object store: restaurants');
-        const restaurantOS = upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
-        restaurantOS.createIndex('id', 'id', {unique: true});
+        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
+      }
+
+      // Create object store for reviews data (only if none exists yet)
+      if (!upgradeDB.objectStoreNames.contains('reviews')) {
+        console.log('Creating new object store: reviews');
+        const reviewsOS = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
+        reviewsOS.createIndex('restaurant_id', 'restaurant_id', {unique: false});
       }
     });
   }
@@ -41,11 +54,11 @@ export class DBHelper {
   /**
    * Update IndexedDB cache.
    */
-  static addToIndexedDB(data) {
+  static addToIndexedDB(data, objStore) {
     DBHelper.openIndexedDB()
       .then(db => {
-        const tx = db.transaction('restaurants', 'readwrite');
-        const store = tx.objectStore('restaurants');
+        const tx = db.transaction(objStore, 'readwrite');
+        const store = tx.objectStore(objStore);
 
         // Break down imported data (sorted in data array) and store
         // each piece of data in IndexedDB restaurants store
@@ -60,11 +73,17 @@ export class DBHelper {
   /**
    * Fetch data from IndexedDB database.
    */
-  static fetchFromIndexedDB() {
+  static fetchFromIndexedDB(objStore, id = {}) {
     return DBHelper.openIndexedDB()
       .then(db => {
-        const tx = db.transaction('restaurants');
-        const store = tx.objectStore('restaurants');
+        const tx = db.transaction(objStore);
+        const store = tx.objectStore(objStore);
+
+        // If restaurant ID is provided, fetch all from index
+        if (objStore === 'reviews') {
+          const index = store.index('restaurant_id');
+          return index.getAll();
+        }
 
         // Return all items in object store.
         return store.getAll();
@@ -74,16 +93,24 @@ export class DBHelper {
   /**
    * Fetch data from API.
    */
-  static fetchFromAPI() {
+  static fetchFromAPI(objStore, id = {}) {
+    let url;
+
+    if (objStore === 'restaurants') {
+      url = DBHelper.RESTAURANTS_DB_URL;
+    } else {
+      url = `${DBHelper.REVIEWS_DB_URL}/?restaurant_id=${id}`;
+    }
+
     // Fetch JSON data from API and parse.
-    return fetch(DBHelper.DATABASE_URL, {
+    return fetch(url, {
       headers: new Headers({
         'Content-Type': 'application/json'
       })
     }).then(response => response.json())
       .then(data => {
         // Update IndexedDB database with fresh data fetched from API and return.
-        DBHelper.addToIndexedDB(data);
+        DBHelper.addToIndexedDB(data, objStore);
         return data;
       })
       .catch(error => console.log('Request failed:', error));
@@ -93,16 +120,18 @@ export class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
+    const objStore = 'restaurants';
+
     // Fetch restaurants data from IndexedDB database.
-    DBHelper.fetchFromIndexedDB()
+    DBHelper.fetchFromIndexedDB(objStore)
       .then(data => {
         // If IndexedDB returns no/empty data, fetch from API.
         if (!data || data.length < 1) {
-          console.log('Retrieving data from API.');
-          return DBHelper.fetchFromAPI();
+          console.log('Retrieving restaurant data from API.');
+          return DBHelper.fetchFromAPI(objStore);
         }
 
-        console.log('Retrieving data from IndexedDB database.');
+        console.log('Retrieving restaurant data from IndexedDB database.');
 
         // Return data to pass into callback function.
         return data;
@@ -112,6 +141,29 @@ export class DBHelper {
       })
       .catch(error => {
         console.log('Unable to fetch restaurant data:', error);
+        callback(error, null);
+      });
+  }
+
+  static fetchReviews(id, callback) {
+    DBHelper.fetchFromIndexedDB('reviews', id)
+      .then(data => {
+        // If IndexedDB returns no/empty data, fetch from API.
+        if (!data || data.length < 1) {
+          console.log('Retrieving reviews data from API.');
+          return DBHelper.fetchFromAPI('reviews', id);
+        }
+
+        console.log('Retrieving reviews data from IndexedDB database.');
+
+        // Return data to pass into callback function.
+        return data;
+      })
+      .then(data => {
+        callback(null, data);
+      })
+      .catch(error => {
+        console.log('Unable to fetch reviews data:', error);
         callback(error, null);
       });
   }
@@ -297,7 +349,7 @@ export class DBHelper {
     console.log('Updating favorite information');
     console.log(typeof newFavoriteStatus);
 
-    const url = `${DBHelper.DATABASE_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
+    const url = `${DBHelper.RESTAURANTS_DB_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
 
     console.log(JSON.stringify({is_favorite: newFavoriteStatus}));
 

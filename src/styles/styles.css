@@ -322,7 +322,7 @@ h6 {
 /* ============================================== */
 .restaurant-details,
 .restaurant-location,
-.reviews {
+.reviews__container {
   border-bottom: 1px solid #D9D9D9;
   border-top: 1px solid #FFF;
 }
@@ -445,7 +445,7 @@ h6 {
   background-color: #CCC;
 }
 
-.reviews {
+.reviews__container {
   padding: 2em 1.5em;
 }
 
@@ -865,7 +865,7 @@ h6 {
     height: 100%;
   }
 
-  .reviews {
+  .reviews__container {
     grid-column: 1 / span 2;
     border-top: 1px solid #D9D9D9;
   }
