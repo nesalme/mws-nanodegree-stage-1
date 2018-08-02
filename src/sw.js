@@ -41,6 +41,10 @@ self.addEventListener('activate', (event) => {
 
 /* Check cache for resource; if not available, fetch from network and store in cache */
 self.addEventListener('fetch', (event) => {
+  // Ignore POST requests: they cannot be cached using the Cache API
+  // so they are cached using IndexedDB (see dbhelper.js)
+  if (event.request.method === 'POST') {return;}
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((response) => {

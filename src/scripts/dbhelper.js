@@ -17,7 +17,7 @@ export class DBHelper {
    */
   static get REVIEWS_DB_URL() {
     const PORT = 1337; // Change this to your server port
-    return `http://localhost:${PORT}/reviews`
+    return `http://localhost:${PORT}/reviews`;
   }
 
   /**
@@ -346,21 +346,24 @@ export class DBHelper {
     */
   static updateFavorite(restaurantID, newFavoriteStatus) {
     // For debugging
-    console.log('Updating favorite information');
-    console.log(typeof newFavoriteStatus);
+    // console.log('Updating favorite information');
+    // console.log(typeof newFavoriteStatus);
 
+    // Variables for fetch request
     const url = `${DBHelper.RESTAURANTS_DB_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
-
-    console.log(JSON.stringify({is_favorite: newFavoriteStatus}));
-
-    fetch(url, {
+    const options = {
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=utf-8'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({is_favorite: newFavoriteStatus})
-      })
+    };
+
+    // For debugging
+    // console.log(JSON.stringify({is_favorite: newFavoriteStatus}));
+
+    fetch(url, options)
       .then(response => {return response.json();})
       .then(data => DBHelper.updateIndexedDB(data))
       .catch(error => console.warn('[ERROR]:', error));
@@ -389,5 +392,41 @@ export class DBHelper {
     };
 
     return new Date(input).toLocaleDateString('en-US', options);
+  }
+
+  static addReview(input) {
+    console.log('Input:', input);
+
+    const review = {
+      restaurant_id: input.restaurant_id,
+      name: input.name,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      rating: input.rating,
+      comments: input.comments
+    };
+
+    console.log('Review:', review);
+
+    // Variables for fetch request
+    const url = DBHelper.REVIEWS_DB_URL;
+    const options = {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(review)
+    };
+
+    fetch(url, options)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`Fetch to post request rejected with status: ${response.status}`);
+        }
+      })
+      .then(result => console.log('Success:', result))
+      .catch(error => console.error('Error:', error));
   }
 }

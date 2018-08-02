@@ -67,6 +67,61 @@
     <section class="reviews__container" id="reviews__container">
       <ul class="reviews__list" id="reviews__list"></ul>
     </section>
+
+    <section class="review__submission">
+      <h3 class="reviews__heading">Add Review</h3>
+
+      <form class="review-form" id="review-form" method="post">
+        <div class="review-form__author">
+          <label class="review-form__label" for="review-author">Name</label>
+          <input type="text" name="name" id="review-author" class="review-form__input" placeholder="Write your name here..." maxlength="30" required aria-required="true">
+        </div>
+
+        <!-- TODO: Add key input 1-5 to each rating -->
+        <div class="review-form__rating">
+          <h4 class="review-form__label">Rating</h4>
+          <div class="rating__group">
+            <div class="rating__item">
+              <label for="review-star-1" class="rating-label">★</label>
+              <input type="radio" name="rating" id="review-star-1" class="rating-star" required aria-required="true" value="1 star">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-2" class="rating-label">★★</label>
+              <input type="radio" name="rating" id="review-star-2" class="rating-star" required aria-required="true" value="2 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-3" class="rating-label">★★★</label>
+              <input type="radio" name="rating" id="review-star-3" class="rating-star" required aria-required="true" value="3 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-4" class="rating-label">★★★★</label>
+              <input type="radio" name="rating" id="review-star-4" class="rating-star" required aria-required="true" value="4 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-5" class="rating-label">★★★★★</label>
+              <input type="radio" name="rating" id="review-star-5" class="rating-star" checked aria-checked="true" required aria-required="true" value="5 stars">
+            </div>
+          </div>
+        </div>
+
+        <div class="review-form__comments">
+          <label for="review-comments" class="review-form__label">Comments</label>
+          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true"></textarea>
+        </div>
+
+        <div class="review-form__footer">
+          <div class="review-form__alert" id="form-alert"></div>
+
+          <div class="review-form__submit">
+            <button type="submit" class="submit-btn" id="review-submit-btn">Submit</button>
+          </div>
+        </div>
+      </form>
+    </section>
   </main>
 
   <footer class="footer">

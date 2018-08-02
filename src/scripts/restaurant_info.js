@@ -11,6 +11,15 @@ const URLS = {
 let restaurant, map;
 
 /**
+ * On page load...
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Listen for click events on review form submit button
+  const formSubmitBtn = document.getElementById('review-submit-btn');
+  formSubmitBtn.addEventListener('click', submitReview);
+});
+
+/**
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
@@ -306,3 +315,41 @@ const toggleFavoriteIcon = (target) => {
 
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
 };
+
+/**
+ * Submit review with user input in UI
+ */
+const submitReview = () => {
+  event.preventDefault();
+
+  // Save input fields in review object
+  const review = {
+    name: document.getElementById('review-author').value,
+    rating: parseInt(document.querySelector('input[name="rating"]:checked').value.charAt(0)),
+    comments: document.getElementById('review-comments').value,
+    restaurant_id: parseInt(getParameterByName('id'))
+  };
+
+  // Add review to database
+  DBHelper.addReview(review);
+
+  // TODO: Alert user if offline
+  // alertWhenOffline();
+
+  // Reset form after submission
+  resetForm();
+};
+
+// TODO: Create function to alert user that review has been submitted offline
+const alertWhenOffline = () => {};
+
+/**
+ * Reset all input fields in review form
+ */
+const resetForm = () => {
+  const form = document.getElementById('review-form');
+  form.reset();
+};
+
+// TODO: Add validateInput() method to validate form entry
+const validateInput = () => {};
