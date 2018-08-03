@@ -82,7 +82,7 @@ export class DBHelper {
         // If restaurant ID is provided, fetch all from index
         if (objStore === 'reviews') {
           const index = store.index('restaurant_id');
-          return index.getAll();
+          return index.getAll(id);
         }
 
         // Return all items in object store.
