@@ -15,7 +15,7 @@ let restaurant, map;
  */
 document.addEventListener('DOMContentLoaded', () => {
   // Listen for click events on review form submit button
-  const formSubmitBtn = document.getElementById('review-submit-btn');
+  let formSubmitBtn = document.getElementById('review-submit-btn');
   formSubmitBtn.addEventListener('click', submitReview);
 });
 
@@ -136,6 +136,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
+
   // Fill reviews
   DBHelper.fetchReviews(restaurant.id, fillReviewsHTML);
 }
@@ -320,7 +321,12 @@ const toggleFavoriteIcon = (target) => {
  * Submit review with user input in UI
  */
 const submitReview = () => {
+  // Check validity of form: if true, continue with submission; if false, abort
+  if (isFormValid() === false) {return;}
+
   event.preventDefault();
+
+  console.log('Submitting review...');
 
   // Save input fields in review object
   const review = {
@@ -333,11 +339,11 @@ const submitReview = () => {
   // Add review to database
   DBHelper.addReview(review);
 
-  // TODO: Alert user if offline
-  // alertWhenOffline();
+  // updateFormAlert('Your form has been successfully submitted!', 'success');
 
+  updateFormAlert('You are offline. Your form has been saved and will be submitted once you are back online.', 'offline');
   // Reset form after submission
-  resetForm();
+  // resetForm();
 };
 
 // TODO: Create function to alert user that review has been submitted offline
@@ -351,5 +357,59 @@ const resetForm = () => {
   form.reset();
 };
 
-// TODO: Add validateInput() method to validate form entry
-const validateInput = () => {};
+/**
+ * Checks validity of form
+ */
+const isFormValid = () => {
+  // If all input fields are valid, return true (to continue review submission)
+  if (allInputIsValid()) {
+    return true;
+  }
+
+  // Handle invalid input
+  if (!nameInputIsValid() && !commentsInputIsValid()) { // Invalid name and comments input
+    updateFormAlert('Please provide a valid name (3-30 characters) and a valid comment for the restaurant (5-900 characters).', 'error');
+  }
+  else if (!nameInputIsValid()) { // Invalid name input only
+    updateFormAlert('Please provide a valid name (3-30 characters).', 'error');
+  }
+  else if (!commentsInputIsValid()) { // Invalid comments input only
+    updateFormAlert('Please provide a valid comment (5-900 characters).', 'error');
+  }
+
+  // If any of the input fields is invalid, return false (to abort review submission)
+  console.log('Review submission aborted due to invalid input field(s).');
+  return false;
+};
+
+/**
+ * Update alert in review form
+ */
+const updateFormAlert = (newValue, newClass) => {
+  const formAlert = document.getElementById('form-alert');
+  formAlert.innerHTML = newValue;
+  formAlert.setAttribute('class', `form-alert-${newClass}`);
+};
+
+/**
+ * Check validity of name input in review form
+ */
+function nameInputIsValid() {
+  const nameInput = document.getElementById('review-author').value;
+  if (nameInput.length >= 3 && nameInput.length <= 30) {return true;}
+}
+
+/**
+ * Check validity of comments input in review form
+ */
+function commentsInputIsValid() {
+  const commentsInput = document.getElementById('review-comments').value;
+  if (commentsInput.length >= 5 && commentsInput.length <= 900) {return true;}
+}
+
+/**
+ * Check validity of all inputs
+ */
+function allInputIsValid() {
+  if (nameInputIsValid() && commentsInputIsValid()) {return true;}
+}

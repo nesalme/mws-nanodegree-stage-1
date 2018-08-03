@@ -346,7 +346,7 @@ export class DBHelper {
     */
   static updateFavorite(restaurantID, newFavoriteStatus) {
     // For debugging
-    // console.log('Updating favorite information');
+    console.log('Updating favorite information');
     // console.log(typeof newFavoriteStatus);
 
     // Variables for fetch request
@@ -373,6 +373,8 @@ export class DBHelper {
     * Update existing record in IndexedDB database
     */
   static updateIndexedDB(data) {
+    console.log('Updating IndexedDB...');
+
     DBHelper.openIndexedDB()
       .then(db => {
         const tx = db.transaction('restaurants', 'readwrite');
@@ -381,7 +383,9 @@ export class DBHelper {
         store.put(data);
 
         return tx.complete;
-    });
+    })
+      .then(() => console.log('IndexedDB database successfully updated.'))
+      .catch(error => console.log('Failed to update IndexedDB store:', error));
   }
 
   static formatDate(input) {
@@ -395,7 +399,9 @@ export class DBHelper {
   }
 
   static addReview(input) {
-    console.log('Input:', input);
+    // For debugging only:
+    // console.log('Input:', input);
+    console.log('Adding review to database...');
 
     const review = {
       restaurant_id: input.restaurant_id,
@@ -406,7 +412,8 @@ export class DBHelper {
       comments: input.comments
     };
 
-    console.log('Review:', review);
+    // For debugging only:
+    // console.log('Review:', review);
 
     // Variables for fetch request
     const url = DBHelper.REVIEWS_DB_URL;

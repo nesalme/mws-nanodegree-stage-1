@@ -71,10 +71,10 @@
     <section class="review__submission">
       <h3 class="reviews__heading">Add Review</h3>
 
-      <form class="review-form" id="review-form" method="post">
+      <form class="review-form" id="review-form" method="post" action="#">
         <div class="review-form__author">
           <label class="review-form__label" for="review-author">Name</label>
-          <input type="text" name="name" id="review-author" class="review-form__input" placeholder="Write your name here..." maxlength="30" required aria-required="true">
+          <input type="text" name="name" id="review-author" class="review-form__input" placeholder="Write your name here..." maxlength="30" minlength="3" required aria-required="true">
         </div>
 
         <!-- TODO: Add key input 1-5 to each rating -->
@@ -110,11 +110,11 @@
 
         <div class="review-form__comments">
           <label for="review-comments" class="review-form__label">Comments</label>
-          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true"></textarea>
+          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true" minlength="5" maxlength="900"></textarea>
         </div>
 
         <div class="review-form__footer">
-          <div class="review-form__alert" id="form-alert"></div>
+          <div class="form-alert" id="form-alert" aria-live="polite"></div>
 
           <div class="review-form__submit">
             <button type="submit" class="submit-btn" id="review-submit-btn">Submit</button>
