@@ -4,6 +4,9 @@ import idb from 'idb';
  * Common database helper functions.
  */
 export class DBHelper {
+  /* ======================================================== */
+  /*  - DATABASE URLs                                         */
+  /* ======================================================== */
   /**
    * Database URL to fetch restaurants data.
    */
@@ -20,6 +23,9 @@ export class DBHelper {
     return `http://localhost:${PORT}/reviews`;
   }
 
+  /* ======================================================== */
+  /*  - INDEXEDDB                                             */
+  /* ======================================================== */
   /**
    * Open IndexedDB.
    */
@@ -66,8 +72,8 @@ export class DBHelper {
 
         return tx.complete;
       })
-      .then(() => console.log('IndexedDB database successfully updated.'))
-      .catch(error => console.log('Failed to update IndexedDB store:', error));
+      .then(() => console.log(`New items successfully added to IndexedDB store: ${objStore}.`))
+      .catch(error => console.log(`Failed to update IndexedDB store ${objStore}:`, error));
   }
 
   /**
@@ -76,6 +82,8 @@ export class DBHelper {
   static fetchFromIndexedDB(objStore, id = {}) {
     return DBHelper.openIndexedDB()
       .then(db => {
+        if (!db) return;
+
         const tx = db.transaction(objStore);
         const store = tx.objectStore(objStore);
 
@@ -90,6 +98,27 @@ export class DBHelper {
       });
   }
 
+  /**
+    * Update existing record in IndexedDB database
+    */
+   static updateIndexedDB(data) {
+    console.log('Updating IndexedDB...');
+
+    DBHelper.openIndexedDB()
+      .then(db => {
+        const tx = db.transaction('restaurants', 'readwrite');
+        const store = tx.objectStore('restaurants');
+
+        store.put(data);
+
+        return tx.complete;
+    }).then(() => console.log('IndexedDB successfully updated'))
+      .catch(error => console.log('Failed to update IndexedDB store:', error));
+  }
+
+  /* ======================================================== */
+  /*  - API CALLS                                             */
+  /* ======================================================== */
   /**
    * Fetch data from API.
    */
@@ -116,11 +145,15 @@ export class DBHelper {
       .catch(error => console.log('Request failed:', error));
   }
 
+  /* ======================================================== */
+  /*  - RESTAURANTS                                           */
+  /* ======================================================== */
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
     const objStore = 'restaurants';
+    let fetchedFromAPI = false;
 
     // Fetch restaurants data from IndexedDB database.
     DBHelper.fetchFromIndexedDB(objStore)
@@ -128,6 +161,7 @@ export class DBHelper {
         // If IndexedDB returns no/empty data, fetch from API.
         if (!data || data.length < 1) {
           console.log('Retrieving restaurant data from API.');
+          fetchedFromAPI = true;
           return DBHelper.fetchFromAPI(objStore);
         }
 
@@ -137,33 +171,11 @@ export class DBHelper {
         return data;
       })
       .then (data => {
+        if (fetchedFromAPI === false) {DBHelper.fetchFromAPI(objStore);}
         callback(null, data);
       })
       .catch(error => {
         console.log('Unable to fetch restaurant data:', error);
-        callback(error, null);
-      });
-  }
-
-  static fetchReviews(id, callback) {
-    DBHelper.fetchFromIndexedDB('reviews', id)
-      .then(data => {
-        // If IndexedDB returns no/empty data, fetch from API.
-        if (!data || data.length < 1) {
-          console.log('Retrieving reviews data from API.');
-          return DBHelper.fetchFromAPI('reviews', id);
-        }
-
-        console.log('Retrieving reviews data from IndexedDB database.');
-
-        // Return data to pass into callback function.
-        return data;
-      })
-      .then(data => {
-        callback(null, data);
-      })
-      .catch(error => {
-        console.log('Unable to fetch reviews data:', error);
         callback(error, null);
       });
   }
@@ -299,38 +311,6 @@ export class DBHelper {
   }
 
   /**
-   * Map marker for a restaurant.
-   */
-  static mapMarkerForRestaurant(restaurant, map) {
-    const MARKER = new google.maps.Marker({
-      position: restaurant.latlng,
-      title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
-      map: map,
-      animation: google.maps.Animation.DROP}
-    );
-    return MARKER;
-  }
-
-/**
- * Remove map (and all descendants) from tab order
- */
-  static removeMapsTabOrder() {
-    document.querySelectorAll('#map *').forEach((el) => {
-      el.setAttribute('tabindex', '-1');
-    });
-  }
-
-/**
- * Set title on iframe to fulfill accessibility requirements
- */
-  static setTitleOnIframe() {
-    document.querySelectorAll('#map iframe').forEach((el) => {
-      el.setAttribute('title', 'Restaurant locations on Google Maps');
-    });
-  }
-
-  /**
    * Check if restaurant is favorite to return appropriate icon
    */
   static isFavorite(restaurant) {
@@ -345,7 +325,7 @@ export class DBHelper {
     * Update favorite information
     */
   static updateFavorite(restaurantID, newFavoriteStatus) {
-    // For debugging
+    // For debugging:
     console.log('Updating favorite information');
     // console.log(typeof newFavoriteStatus);
 
@@ -369,50 +349,61 @@ export class DBHelper {
       .catch(error => console.warn('[ERROR]:', error));
   }
 
+  /* ======================================================== */
+  /*  - REVIEWS                                               */
+  /* ======================================================== */
   /**
-    * Update existing record in IndexedDB database
-    */
-  static updateIndexedDB(data) {
-    console.log('Updating IndexedDB...');
+   * Fetch all reviews by restaurant id
+   */
+  static fetchReviews(id, callback) {
+    let fetchedFromAPI = false;
 
-    DBHelper.openIndexedDB()
-      .then(db => {
-        const tx = db.transaction('restaurants', 'readwrite');
-        const store = tx.objectStore('restaurants');
+    DBHelper.fetchFromIndexedDB('reviews', id)
+      .then(data => {
+        // If IndexedDB returns no/empty data, fetch from API.
+        if (!data || data.length < 1) {
+          console.log('Retrieving reviews data from API.');
+          fetchedFromAPI = true;
+          return DBHelper.fetchFromAPI('reviews', id);
+        }
 
-        store.put(data);
+        console.log('Retrieving reviews data from IndexedDB database.');
 
-        return tx.complete;
-    })
-      .then(() => console.log('IndexedDB database successfully updated.'))
-      .catch(error => console.log('Failed to update IndexedDB store:', error));
+        // Return data to pass into callback function.
+        return data;
+      })
+      .then(data => {
+        if (fetchedFromAPI === false) {
+          console.log('Calling to API...');
+          DBHelper.fetchFromAPI('reviews', id);
+        }
+        callback(null, data);
+      })
+      .catch(error => {
+        console.log('Unable to fetch reviews data:', error);
+        callback(error, null);
+      });
   }
 
-  static formatDate(input) {
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-
-    return new Date(input).toLocaleDateString('en-US', options);
-  }
-
+  /**
+   * Add new restaurant review
+   */
   static addReview(input) {
     // For debugging only:
     // console.log('Input:', input);
     console.log('Adding review to database...');
 
+    // Create review object with data in input fields
     const review = {
       restaurant_id: input.restaurant_id,
       name: input.name,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: Date.now(), // Date.now() produces date in 13-digit format
+      updatedAt: Date.now(), // (as provided in original data)
       rating: input.rating,
       comments: input.comments
     };
 
-    // For debugging only:
+    // For debugging only
     // console.log('Review:', review);
 
     // Variables for fetch request
@@ -425,6 +416,7 @@ export class DBHelper {
       body: JSON.stringify(review)
     };
 
+    // Fetch request to POST new review to database
     fetch(url, options)
       .then(response => {
         if (response.ok) {
@@ -435,5 +427,56 @@ export class DBHelper {
       })
       .then(result => console.log('Success:', result))
       .catch(error => console.error('Error:', error));
+  }
+
+  /* ======================================================== */
+  /*  - MAPS                                                  */
+  /* ======================================================== */
+  /**
+   * Map marker for a restaurant.
+   */
+  static mapMarkerForRestaurant(restaurant, map) {
+    const MARKER = new google.maps.Marker({
+      position: restaurant.latlng,
+      title: restaurant.name,
+      url: DBHelper.urlForRestaurant(restaurant),
+      map: map,
+      animation: google.maps.Animation.DROP}
+    );
+    return MARKER;
+  }
+
+/**
+ * Remove map (and all descendants) from tab order
+ */
+  static removeMapsTabOrder() {
+    document.querySelectorAll('#map *').forEach((el) => {
+      el.setAttribute('tabindex', '-1');
+    });
+  }
+
+  /* ======================================================== */
+  /*  - HELPERS                                               */
+  /* ======================================================== */
+/**
+ * Set title on iframe to fulfill accessibility requirements
+ */
+  static setTitleOnIframe() {
+    document.querySelectorAll('#map iframe').forEach((el) => {
+      el.setAttribute('title', 'Restaurant locations on Google Maps');
+    });
+  }
+
+  /**
+   * Format date as Month DD, YYYY
+   */
+  static formatDate(input) {
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
+    return new Date(input).toLocaleDateString('en-US', options);
   }
 }
