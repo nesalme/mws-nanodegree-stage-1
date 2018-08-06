@@ -45,14 +45,32 @@ export class DBHelper {
       // Create object store for restaurant data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('restaurants')) {
         console.log('Creating new object store: restaurants');
-        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
+        upgradeDB.createObjectStore('restaurants', {
+          keyPath: 'id'
+      });
       }
 
       // Create object store for reviews data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('reviews')) {
         console.log('Creating new object store: reviews');
-        const reviewsOS = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
-        reviewsOS.createIndex('restaurant_id', 'restaurant_id', {unique: false});
+        const reviewsOS = upgradeDB.createObjectStore('reviews', {
+          keyPath: 'id'
+      });
+        reviewsOS.createIndex('restaurant_id', 'restaurant_id', {
+          unique: false
+        });
+      }
+
+      // Create object store for offline items (only if none exists yet)
+      if (!upgradeDB.objectStoreNames.contains('outbox')) {
+        console.log('Creating new object store: outbox');
+        const outboxOS = upgradeDB.createObjectStore('outbox', {
+          keyPath: 'id',
+          autoIncrement: true
+        });
+        outboxOS.createIndex('type', 'type', {
+          unique: false
+        });
       }
     });
   }
@@ -116,6 +134,83 @@ export class DBHelper {
       .catch(error => console.log('Failed to update IndexedDB store:', error));
   }
 
+  /**
+   * Add review to outbox (when offline)
+   */
+  static addOfflineReviewToOutbox(review) {
+    console.log('Adding review to outbox...');
+
+    // Open outbox object store in IndexedDB
+    DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('outbox', 'readwrite');
+        const store = tx.objectStore('outbox');
+
+        // Store review with type 'review'
+        store.put({
+          type: 'review',
+          data: review
+        });
+
+        return tx.complete;
+      })
+      .then(() => console.log('New review successfully added to outbox'))
+      .catch(error => console.log('Failed to add to outbox:', error));
+  }
+
+  /**
+   * Add offline reviews (stored in IndexedDB) to database
+   */
+  static addOfflineReviewsToDatabase() {
+    console.log('Adding reviews from outbox to database...');
+
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('outbox');
+        const store = tx.objectStore('outbox');
+        const index = store.index('type');
+
+        return index.getAll('review')
+          .then(allItems => {
+            allItems.forEach(item => {
+              DBHelper.addReviewToDatabase(item.data);
+            });
+          })
+          .then(() => DBHelper.emptyOutbox('review'));
+      });
+  }
+
+  // TODO: addFavoriteToOutbox()
+
+  /**
+   * Empty outbox of offline items
+   */
+  static emptyOutbox(type) {
+    console.log('Emptying outbox items of type:', type);
+
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('outbox', 'readwrite');
+        const store = tx.objectStore('outbox');
+        const index = store.index('type');
+
+        index.getAll(type)
+          .then(allItems => {
+            allItems.forEach(item => store.delete(item.id));
+          });
+
+        console.log('Successfully deleted outbox items of type:', type);
+
+        return tx.complete;
+      });
+  }
+
   /* ======================================================== */
   /*  - API CALLS                                             */
   /* ======================================================== */
@@ -144,6 +239,54 @@ export class DBHelper {
       })
       .catch(error => console.log('Request failed:', error));
   }
+
+  /**
+   * Add new restaurant review
+   */
+  static addReviewToDatabase(input) {
+    // For debugging only:
+    // console.log('Input:', input);
+    console.log('Adding review to database...');
+
+    // Create review object with data in input fields
+    const review = {
+      restaurant_id: input.restaurant_id,
+      name: input.name,
+      createdAt: input.createdAt,
+      updatedAt: input.updatedAt,
+      rating: input.rating,
+      comments: input.comments
+    };
+
+    // For debugging only
+    // console.log('Review:', review);
+
+    // Variables for fetch request
+    const url = DBHelper.REVIEWS_DB_URL;
+    const options = {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(review)
+    };
+
+    // Fetch request to POST new review to database
+    fetch(url, options)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`Fetch to post request rejected with status: ${response.status}`);
+        }
+      })
+      .then(result => console.log('Success:', result))
+      .catch(error => console.error('Error:', error));
+  }
+
+  // TODO: addOfflineFavoritesToDatabase()
+
+  // TODO: updateDatabase()
 
   /* ======================================================== */
   /*  - RESTAURANTS                                           */
@@ -383,50 +526,6 @@ export class DBHelper {
         console.log('Unable to fetch reviews data:', error);
         callback(error, null);
       });
-  }
-
-  /**
-   * Add new restaurant review
-   */
-  static addReview(input) {
-    // For debugging only:
-    // console.log('Input:', input);
-    console.log('Adding review to database...');
-
-    // Create review object with data in input fields
-    const review = {
-      restaurant_id: input.restaurant_id,
-      name: input.name,
-      createdAt: Date.now(), // Date.now() produces date in 13-digit format
-      updatedAt: Date.now(), // (as provided in original data)
-      rating: input.rating,
-      comments: input.comments
-    };
-
-    // For debugging only
-    // console.log('Review:', review);
-
-    // Variables for fetch request
-    const url = DBHelper.REVIEWS_DB_URL;
-    const options = {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(review)
-    };
-
-    // Fetch request to POST new review to database
-    fetch(url, options)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error(`Fetch to post request rejected with status: ${response.status}`);
-        }
-      })
-      .then(result => console.log('Success:', result))
-      .catch(error => console.error('Error:', error));
   }
 
   /* ======================================================== */

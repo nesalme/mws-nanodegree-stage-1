@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
   formSubmitBtn.addEventListener('click', submitReview);
 });
 
+// document.addEventListener('online', DBHelper.addOfflineReviewsToDatabase);
+window.addEventListener('online', DBHelper.addOfflineReviewsToDatabase);
+
+window.addEventListener('offline', event => {
+  console.log('You are now offline');
+});
+
 /**
  * Initialize Google map, called from HTML.
  */
@@ -33,9 +40,6 @@ window.initMap = () => {
         scrollwheel: false
       });
       fillBreadcrumb();
-      // fetchReviewsByRestaurantID((error) => {
-      //   if (error) {console.error(error);}
-      // });
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
       self.map.addListener('tilesloaded', improveMapAccessibility);
     }
@@ -290,15 +294,6 @@ const handleFavoriteClick = (event, restaurant) => {
   const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
   const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
 
-  // For debugging only
-  // console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
-  // console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
-
-  // For debugging only
-  // console.log('Event target:', event.target);
-  // console.log('Restaurant ID:', restaurant.id);
-  // console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
-
   // Change icon in the UI
   toggleFavoriteIcon(event.target);
 
@@ -318,7 +313,7 @@ const toggleFavoriteIcon = (target) => {
 };
 
 /**
- * Submit review with user input in UI
+ * Submit new review
  */
 const submitReview = () => {
   // Check validity of form: if true, continue with submission; if false, abort
@@ -333,21 +328,24 @@ const submitReview = () => {
     name: document.getElementById('review-author').value,
     rating: parseInt(document.querySelector('input[name="rating"]:checked').value.charAt(0)),
     comments: document.getElementById('review-comments').value,
-    restaurant_id: parseInt(getParameterByName('id'))
+    restaurant_id: parseInt(getParameterByName('id')),
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   };
 
-  // Add review to database
-  DBHelper.addReview(review);
+  if (navigator.onLine) {
+    // If online, add review to database and notify user
+    DBHelper.addReviewToDatabase(review);
+    updateFormAlert('Your review has been successfully submitted!', 'success');
+  } else {
+    // If offline, add review to outbox so that it can be saved to database once back online and notify user
+    DBHelper.addOfflineReviewToOutbox(review);
+    updateFormAlert('You are offline. Your review has been saved and will be submitted once you are back online.', 'offline');
+  }
 
-  // updateFormAlert('Your form has been successfully submitted!', 'success');
-
-  updateFormAlert('You are offline. Your form has been saved and will be submitted once you are back online.', 'offline');
   // Reset form after submission
-  // resetForm();
+  resetForm();
 };
-
-// TODO: Create function to alert user that review has been submitted offline
-const alertWhenOffline = () => {};
 
 /**
  * Reset all input fields in review form
