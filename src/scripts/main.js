@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchCuisines();
 });
 
+// Check if online to update database with any items saved while offline
+window.addEventListener('online', DBHelper.updateDatabase);
+
+// Trigger console warning when offline
+window.addEventListener('offline', event => console.log('You are now offline'));
+
 /**
  * Handle click events on the entire page (minus click on favorite icon)
  */
@@ -264,20 +270,16 @@ const handleFavoriteClick = (event, restaurant) => {
   const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
   const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
 
-  // For debugging only
-  // console.log(`The current status is ${CURRENT_FAV_STATUS} of type ${typeof CURRENT_FAV_STATUS}`);
-  // console.log(`The new status is ${NEW_FAV_STATUS} of type ${typeof NEW_FAV_STATUS}`);
-
-  // For debugging only
-  // console.log('Event target:', event.target);
-  // console.log('Restaurant ID:', restaurant.id);
-  // console.log('New favorite status:', NEW_FAV_STATUS, typeof NEW_FAV_STATUS);
-
   // Change icon in the UI
   toggleFavoriteIcon(event.target, restaurant.id);
 
-  // Update database
-  DBHelper.updateFavorite(restaurant.id, NEW_FAV_STATUS);
+  if (navigator.onLine) {
+    // When online, update database
+    DBHelper.addFavoriteToDatabase(restaurant.id, NEW_FAV_STATUS);
+  } else {
+    // Otherwise, save favorite change to outbox to be saved in database later
+    DBHelper.addFavoriteToOutbox(restaurant.id, NEW_FAV_STATUS);
+  }
 };
 
 /**

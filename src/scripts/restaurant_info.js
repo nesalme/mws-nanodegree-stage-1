@@ -19,12 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
   formSubmitBtn.addEventListener('click', submitReview);
 });
 
-// document.addEventListener('online', DBHelper.addOfflineReviewsToDatabase);
-window.addEventListener('online', DBHelper.addOfflineReviewsToDatabase);
+// Check if online to update database with any items saved while offline
+window.addEventListener('online', DBHelper.updateDatabase);
 
-window.addEventListener('offline', event => {
-  console.log('You are now offline');
-});
+// Trigger console warning when offline
+window.addEventListener('offline', event => console.log('You are now offline'));
 
 /**
  * Initialize Google map, called from HTML.
@@ -297,8 +296,13 @@ const handleFavoriteClick = (event, restaurant) => {
   // Change icon in the UI
   toggleFavoriteIcon(event.target);
 
-  // Update database
-  DBHelper.updateFavorite(restaurant.id, NEW_FAV_STATUS);
+  if (navigator.onLine) {
+    // When online, update database
+    DBHelper.addFavoriteToDatabase(restaurant.id, NEW_FAV_STATUS);
+  } else {
+    // Otherwise, save favorite change to outbox to be saved in database later
+    DBHelper.addFavoriteToOutbox(restaurant.id, NEW_FAV_STATUS);
+  }
 };
 
 /**

@@ -124,6 +124,8 @@ export class DBHelper {
 
     DBHelper.openIndexedDB()
       .then(db => {
+        if (!db) return;
+
         const tx = db.transaction('restaurants', 'readwrite');
         const store = tx.objectStore('restaurants');
 
@@ -156,7 +158,7 @@ export class DBHelper {
 
         return tx.complete;
       })
-      .then(() => console.log('New review successfully added to outbox'))
+      .then(() => console.log('New review successfully added to outbox.'))
       .catch(error => console.log('Failed to add to outbox:', error));
   }
 
@@ -176,6 +178,8 @@ export class DBHelper {
 
         return index.getAll('review')
           .then(allItems => {
+            if (!allItems) return;
+
             allItems.forEach(item => {
               DBHelper.addReviewToDatabase(item.data);
             });
@@ -185,6 +189,56 @@ export class DBHelper {
   }
 
   // TODO: addFavoriteToOutbox()
+  static addFavoriteToOutbox(restaurantID, newFavoriteStatus) {
+    console.log('Marking restaurant as favorite while offline. Adding to outbox...');
+
+    // Open outbox object store in IndexedDB
+    DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('outbox', 'readwrite');
+        const store = tx.objectStore('outbox');
+        const index = store.index('type');
+
+        // Store updated favorite status
+        store.put({
+          type: 'favorite',
+          data: {
+            restaurant_id: restaurantID,
+            is_favorite: newFavoriteStatus
+          }
+        });
+
+        return tx.complete;
+      })
+      .then(() => console.log(`New favorite status successfully added to outbox.`))
+      .catch(error => console.log('Failed to add to outbox:', error));
+  }
+
+  // TODO: addOfflineFavoritesToDatabase()
+  static addOfflineFavoritesToDatabase() {
+    console.log('Adding favorites from outbox to database...');
+
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('outbox');
+        const store = tx.objectStore('outbox');
+        const index = store.index('type');
+
+        return index.getAll('favorite')
+          .then(allItems => {
+            if (!allItems) return;
+
+            allItems.forEach(item => {
+              DBHelper.addFavoriteToDatabase(item.data.restaurant_id, item.data.is_favorite);
+            });
+          })
+          .then(() => DBHelper.emptyOutbox('favorite'));
+      })
+  }
 
   /**
    * Empty outbox of offline items
@@ -198,7 +252,7 @@ export class DBHelper {
 
         const tx = db.transaction('outbox', 'readwrite');
         const store = tx.objectStore('outbox');
-        const index = store.index('type');
+        const index = store.index('type')
 
         index.getAll(type)
           .then(allItems => {
@@ -284,9 +338,11 @@ export class DBHelper {
       .catch(error => console.error('Error:', error));
   }
 
-  // TODO: addOfflineFavoritesToDatabase()
-
   // TODO: updateDatabase()
+  static updateDatabase() {
+    DBHelper.addOfflineFavoritesToDatabase();
+    DBHelper.addOfflineReviewsToDatabase();
+  }
 
   /* ======================================================== */
   /*  - RESTAURANTS                                           */
@@ -457,7 +513,7 @@ export class DBHelper {
    * Check if restaurant is favorite to return appropriate icon
    */
   static isFavorite(restaurant) {
-    if (restaurant.is_favorite === false || restaurant.is_favorite === 'false') {
+    if (restaurant.is_favorite === false || restaurant.is_favorite === 'false' || !restaurant.is_favorite) {
       return false;
     } else {
       return true;
@@ -467,7 +523,7 @@ export class DBHelper {
   /**
     * Update favorite information
     */
-  static updateFavorite(restaurantID, newFavoriteStatus) {
+  static addFavoriteToDatabase(restaurantID, newFavoriteStatus) {
     // For debugging:
     console.log('Updating favorite information');
     // console.log(typeof newFavoriteStatus);
