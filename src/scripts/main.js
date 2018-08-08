@@ -275,10 +275,10 @@ const handleFavoriteClick = (event, restaurant) => {
 
   if (navigator.onLine) {
     // When online, update database
-    DBHelper.addFavoriteToDatabase(restaurant.id, NEW_FAV_STATUS);
+    DBHelper.updateFavoriteInDatabase(restaurant.id, NEW_FAV_STATUS);
   } else {
-    // Otherwise, save favorite change to outbox to be saved in database later
-    DBHelper.addFavoriteToOutbox(restaurant.id, NEW_FAV_STATUS);
+    // Otherwise, save favorite change to IndexedDB to be saved in database later
+    DBHelper.saveOfflineFavorite(restaurant.id, NEW_FAV_STATUS);
   }
 };
 

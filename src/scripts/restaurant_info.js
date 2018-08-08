@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Listen for click events on review form submit button
   let formSubmitBtn = document.getElementById('review-submit-btn');
   formSubmitBtn.addEventListener('click', submitReview);
+
+  if (navigator.onLine) {
+    DBHelper.updateDatabase();
+  }
 });
 
 // Check if online to update database with any items saved while offline
@@ -140,8 +144,11 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
 
-  // Fill reviews
+  // Fill reviews with live reviews (fetched from API or reviews IDB store)
   DBHelper.fetchReviews(restaurant.id, fillReviewsHTML);
+
+  // Fill reviews with offline reviews (fetched from offline-reviews IDB store)
+  DBHelper.fetchOfflineReviews(restaurant.id, fillOfflineReviewsHTML);
 }
 
 /**
@@ -166,7 +173,7 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 
     HOURS.appendChild(ROW);
   }
-}
+};
 
 /**
  * Create all reviews HTML and add them to the webpage.
@@ -197,7 +204,28 @@ const fillReviewsHTML = (error, reviews) => {
   });
 
   CONTAINER.appendChild(UL);
-}
+};
+
+// Create HTML for offline reviews and add them to the webpage.
+const fillOfflineReviewsHTML = (error, reviews) => {
+  if (!reviews) return;
+
+  self.restaurant.offline_reviews = reviews;
+
+  if (error) {
+    console.log(`Error fetching offline reviews for ${restaurant.name}:`, error);
+  }
+
+  const UL = document.getElementById('reviews__list');
+
+  if (Array.isArray(reviews)) {
+    reviews.forEach(review => {
+      UL.appendChild(createReviewHTML(review.data));
+    })
+  } else {
+    UL.appendChild(createReviewHTML(review.data));
+  }
+};
 
 /**
  * Create review HTML and add it to the webpage.
@@ -220,16 +248,16 @@ const createReviewHTML = (review) => {
   NAME.setAttribute('aria-hidden', 'true');
   ARTICLE.appendChild(NAME);
 
-  const RATING = document.createElement('p');
-  RATING.className = 'review__rating';
-  RATING.innerHTML = `Rating: ${review.rating}`;
-  ARTICLE.appendChild(RATING);
-
   const DATE = document.createElement('p');
   DATE.className = 'review__date';
   DATE.innerHTML = REVIEW_DATE;
   DATE.setAttribute('aria-hidden', 'true');
   ARTICLE.appendChild(DATE);
+
+  const RATING = document.createElement('p');
+  RATING.className = 'review__rating';
+  RATING.innerHTML = `${review.rating}★`;
+  ARTICLE.appendChild(RATING);
 
   const COMMENTS = document.createElement('p');
   COMMENTS.className = 'review__comments';
@@ -237,7 +265,17 @@ const createReviewHTML = (review) => {
   ARTICLE.appendChild(COMMENTS);
 
   return LI;
-}
+};
+
+// Add new review to UI
+const addNewReviewToUI = (review, status) => {
+  const UL = document.getElementById('reviews__list');
+  UL.appendChild(createReviewHTML(review));
+
+  if (status === 'offline') {
+    UL.lastChild.classList.add('offline-review');
+  }
+};
 
 /**
  * Add restaurant name to the breadcrumb navigation menu
@@ -298,10 +336,10 @@ const handleFavoriteClick = (event, restaurant) => {
 
   if (navigator.onLine) {
     // When online, update database
-    DBHelper.addFavoriteToDatabase(restaurant.id, NEW_FAV_STATUS);
+    DBHelper.updateFavoriteInDatabase(restaurant.id, NEW_FAV_STATUS);
   } else {
-    // Otherwise, save favorite change to outbox to be saved in database later
-    DBHelper.addFavoriteToOutbox(restaurant.id, NEW_FAV_STATUS);
+    // Otherwise, save favorite change in IndexedDB to be saved in database later
+    DBHelper.saveOfflineFavorite(restaurant.id, NEW_FAV_STATUS);
   }
 };
 
@@ -338,12 +376,18 @@ const submitReview = () => {
   };
 
   if (navigator.onLine) {
-    // If online, add review to database and notify user
+    // If online, add review to database
     DBHelper.addReviewToDatabase(review);
+    // Add new review to UI
+    addNewReviewToUI(review, 'online');
+    // Notify user
     updateFormAlert('Your review has been successfully submitted!', 'success');
   } else {
-    // If offline, add review to outbox so that it can be saved to database once back online and notify user
-    DBHelper.addOfflineReviewToOutbox(review);
+    // If offline, save offline review so that it can be saved to database once back online
+    DBHelper.saveOfflineReview(review);
+    // Add new review to UI
+    addNewReviewToUI(review, 'offline');
+    // Notify user
     updateFormAlert('You are offline. Your review has been saved and will be submitted once you are back online.', 'offline');
   }
 
@@ -414,4 +458,16 @@ function commentsInputIsValid() {
  */
 function allInputIsValid() {
   if (nameInputIsValid() && commentsInputIsValid()) {return true;}
+}
+
+/**
+ * Register service worker for offline-first
+ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(() => {
+    // success
+    console.log('Service worker registered');
+  }).catch((error) => {
+    console.log('Service worker failed to register with ', error);
+  });
 }

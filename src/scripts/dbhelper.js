@@ -4,9 +4,9 @@ import idb from 'idb';
  * Common database helper functions.
  */
 export class DBHelper {
-  /* ======================================================== */
-  /*  - DATABASE URLs                                         */
-  /* ======================================================== */
+  /* ============================================================================ */
+  /*  - DATABASE URLs                                                             */
+  /* ============================================================================ */
   /**
    * Database URL to fetch restaurants data.
    */
@@ -23,9 +23,47 @@ export class DBHelper {
     return `http://localhost:${PORT}/reviews`;
   }
 
-  /* ======================================================== */
-  /*  - INDEXEDDB                                             */
-  /* ======================================================== */
+  /* ============================================================================ */
+  /*  - API & INDEXEDDB CALLS                                                     */
+  /* ============================================================================ */
+  /**
+   * Fetch data from API.
+   */
+  static fetchFromAPI(type, id = {}) {
+    let url;
+
+    if (type === 'restaurants') {
+      url = DBHelper.RESTAURANTS_DB_URL;
+    } else {
+      url = `${DBHelper.REVIEWS_DB_URL}/?restaurant_id=${id}`;
+    }
+
+    console.log(url);
+
+    // Fetch JSON data from API and parse.
+    return fetch(url, {
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then(response => response.json())
+      .then(data => {
+        console.log('Updating IndexedDB with new data...', data);
+
+        // Update IndexedDB database with fresh data fetched from API and return.
+        DBHelper.addToIndexedDB(data, type);
+        return data;
+      })
+      .catch(error => console.log('Request failed:', error));
+  }
+
+  /**
+   * Save offline items to database.
+   */
+  static updateDatabase() {
+    DBHelper.addOfflineFavoritesToDatabase();
+    DBHelper.addOfflineReviewsToDatabase();
+  }
+
   /**
    * Open IndexedDB.
    */
@@ -45,31 +83,34 @@ export class DBHelper {
       // Create object store for restaurant data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('restaurants')) {
         console.log('Creating new object store: restaurants');
-        upgradeDB.createObjectStore('restaurants', {
-          keyPath: 'id'
-      });
+        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
       }
 
       // Create object store for reviews data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('reviews')) {
         console.log('Creating new object store: reviews');
-        const reviewsOS = upgradeDB.createObjectStore('reviews', {
-          keyPath: 'id'
-      });
-        reviewsOS.createIndex('restaurant_id', 'restaurant_id', {
-          unique: false
-        });
+        const reviewsOS = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
+        // Create restaurant id index on reviews object store
+        reviewsOS.createIndex('restaurant_id', 'restaurant_id', {unique: false});
       }
 
-      // Create object store for offline items (only if none exists yet)
-      if (!upgradeDB.objectStoreNames.contains('outbox')) {
-        console.log('Creating new object store: outbox');
-        const outboxOS = upgradeDB.createObjectStore('outbox', {
+      // Create object store for offline reviews (only if none exists yet)
+      if (!upgradeDB.objectStoreNames.contains('offline-reviews')) {
+        console.log('Creating new object store: offline-reviews');
+        const offlineReviewsOS = upgradeDB.createObjectStore('offline-reviews', {
           keyPath: 'id',
           autoIncrement: true
         });
-        outboxOS.createIndex('type', 'type', {
-          unique: false
+        // Create restaurant id index on offline reviews object store
+        offlineReviewsOS.createIndex('restaurant_id', 'restaurant_id', {unique: false});
+      }
+
+      // Create object store for offline favorites (only if none exists yet)
+      if (!upgradeDB.objectStoreNames.contains('offline-favorites')) {
+        console.log('Creating new object store: offline-favorites');
+        upgradeDB.createObjectStore('offline-favorites', {
+          keyPath: 'restaurant_id',
+          unique: true
         });
       }
     });
@@ -81,12 +122,18 @@ export class DBHelper {
   static addToIndexedDB(data, objStore) {
     DBHelper.openIndexedDB()
       .then(db => {
+        if (!db) return;
+
         const tx = db.transaction(objStore, 'readwrite');
         const store = tx.objectStore(objStore);
 
-        // Break down imported data (sorted in data array) and store
+        // Break down imported data (if sorted in data array) and store
         // each piece of data in IndexedDB restaurants store
-        data.forEach(item => store.put(item));
+        if (Array.isArray(data)) {
+          data.forEach(item => store.put(item));
+        } else {
+          store.put(data)
+        }
 
         return tx.complete;
       })
@@ -95,7 +142,7 @@ export class DBHelper {
   }
 
   /**
-   * Fetch data from IndexedDB database.
+   * Fetch data from IndexedDB.
    */
   static fetchFromIndexedDB(objStore, id = {}) {
     return DBHelper.openIndexedDB()
@@ -105,263 +152,75 @@ export class DBHelper {
         const tx = db.transaction(objStore);
         const store = tx.objectStore(objStore);
 
-        // If restaurant ID is provided, fetch all from index
-        if (objStore === 'reviews') {
+        // For reviews and offline reviews object stores, get all items by id.
+        if (objStore === 'reviews' || objStore === 'offline-reviews') {
           const index = store.index('restaurant_id');
           return index.getAll(id);
         }
 
-        // Return all items in object store.
+        // For restaurants and favorites, return all items in object store.
         return store.getAll();
       });
   }
 
   /**
-    * Update existing record in IndexedDB database
-    */
-   static updateIndexedDB(data) {
+  * Update existing record in IndexedDB database
+  */
+   static updateIndexedDB(data, objStore) {
     console.log('Updating IndexedDB...');
 
     DBHelper.openIndexedDB()
       .then(db => {
         if (!db) return;
 
-        const tx = db.transaction('restaurants', 'readwrite');
-        const store = tx.objectStore('restaurants');
+        const tx = db.transaction(objStore, 'readwrite');
+        const store = tx.objectStore(objStore);
 
         store.put(data);
 
         return tx.complete;
-    }).then(() => console.log('IndexedDB successfully updated'))
+    }).then(() => console.log(`Successfully updated data in ${objStore} object store.`))
       .catch(error => console.log('Failed to update IndexedDB store:', error));
   }
 
   /**
-   * Add review to outbox (when offline)
+   * Empty object store in IndexedDB.
    */
-  static addOfflineReviewToOutbox(review) {
-    console.log('Adding review to outbox...');
+  static emptyObjectStore(objStore) {
+    console.log('Emptying object store:', objStore);
 
-    // Open outbox object store in IndexedDB
-    DBHelper.openIndexedDB()
-      .then(db => {
-        if (!db) return;
-
-        const tx = db.transaction('outbox', 'readwrite');
-        const store = tx.objectStore('outbox');
-
-        // Store review with type 'review'
-        store.put({
-          type: 'review',
-          data: review
-        });
-
-        return tx.complete;
-      })
-      .then(() => console.log('New review successfully added to outbox.'))
-      .catch(error => console.log('Failed to add to outbox:', error));
-  }
-
-  /**
-   * Add offline reviews (stored in IndexedDB) to database
-   */
-  static addOfflineReviewsToDatabase() {
-    console.log('Adding reviews from outbox to database...');
-
+    // Open object store.
     return DBHelper.openIndexedDB()
       .then(db => {
         if (!db) return;
 
-        const tx = db.transaction('outbox');
-        const store = tx.objectStore('outbox');
-        const index = store.index('type');
+        const tx = db.transaction(objStore, 'readwrite');
+        const store = tx.objectStore(objStore);
 
-        return index.getAll('review')
-          .then(allItems => {
-            if (!allItems) return;
+        store.clear();
 
-            allItems.forEach(item => {
-              DBHelper.addReviewToDatabase(item.data);
-            });
-          })
-          .then(() => DBHelper.emptyOutbox('review'));
-      });
-  }
-
-  // TODO: addFavoriteToOutbox()
-  static addFavoriteToOutbox(restaurantID, newFavoriteStatus) {
-    console.log('Marking restaurant as favorite while offline. Adding to outbox...');
-
-    // Open outbox object store in IndexedDB
-    DBHelper.openIndexedDB()
-      .then(db => {
-        if (!db) return;
-
-        const tx = db.transaction('outbox', 'readwrite');
-        const store = tx.objectStore('outbox');
-        const index = store.index('type');
-
-        // Store updated favorite status
-        store.put({
-          type: 'favorite',
-          data: {
-            restaurant_id: restaurantID,
-            is_favorite: newFavoriteStatus
-          }
-        });
-
-        return tx.complete;
-      })
-      .then(() => console.log(`New favorite status successfully added to outbox.`))
-      .catch(error => console.log('Failed to add to outbox:', error));
-  }
-
-  // TODO: addOfflineFavoritesToDatabase()
-  static addOfflineFavoritesToDatabase() {
-    console.log('Adding favorites from outbox to database...');
-
-    return DBHelper.openIndexedDB()
-      .then(db => {
-        if (!db) return;
-
-        const tx = db.transaction('outbox');
-        const store = tx.objectStore('outbox');
-        const index = store.index('type');
-
-        return index.getAll('favorite')
-          .then(allItems => {
-            if (!allItems) return;
-
-            allItems.forEach(item => {
-              DBHelper.addFavoriteToDatabase(item.data.restaurant_id, item.data.is_favorite);
-            });
-          })
-          .then(() => DBHelper.emptyOutbox('favorite'));
-      })
-  }
-
-  /**
-   * Empty outbox of offline items
-   */
-  static emptyOutbox(type) {
-    console.log('Emptying outbox items of type:', type);
-
-    return DBHelper.openIndexedDB()
-      .then(db => {
-        if (!db) return;
-
-        const tx = db.transaction('outbox', 'readwrite');
-        const store = tx.objectStore('outbox');
-        const index = store.index('type')
-
-        index.getAll(type)
-          .then(allItems => {
-            allItems.forEach(item => store.delete(item.id));
-          });
-
-        console.log('Successfully deleted outbox items of type:', type);
-
+        console.log('Successfully deleted all items from object store:', objStore);
         return tx.complete;
       });
   }
 
-  /* ======================================================== */
-  /*  - API CALLS                                             */
-  /* ======================================================== */
-  /**
-   * Fetch data from API.
-   */
-  static fetchFromAPI(objStore, id = {}) {
-    let url;
-
-    if (objStore === 'restaurants') {
-      url = DBHelper.RESTAURANTS_DB_URL;
-    } else {
-      url = `${DBHelper.REVIEWS_DB_URL}/?restaurant_id=${id}`;
-    }
-
-    // Fetch JSON data from API and parse.
-    return fetch(url, {
-      headers: new Headers({
-        'Content-Type': 'application/json'
-      })
-    }).then(response => response.json())
-      .then(data => {
-        // Update IndexedDB database with fresh data fetched from API and return.
-        DBHelper.addToIndexedDB(data, objStore);
-        return data;
-      })
-      .catch(error => console.log('Request failed:', error));
-  }
-
-  /**
-   * Add new restaurant review
-   */
-  static addReviewToDatabase(input) {
-    // For debugging only:
-    // console.log('Input:', input);
-    console.log('Adding review to database...');
-
-    // Create review object with data in input fields
-    const review = {
-      restaurant_id: input.restaurant_id,
-      name: input.name,
-      createdAt: input.createdAt,
-      updatedAt: input.updatedAt,
-      rating: input.rating,
-      comments: input.comments
-    };
-
-    // For debugging only
-    // console.log('Review:', review);
-
-    // Variables for fetch request
-    const url = DBHelper.REVIEWS_DB_URL;
-    const options = {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(review)
-    };
-
-    // Fetch request to POST new review to database
-    fetch(url, options)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error(`Fetch to post request rejected with status: ${response.status}`);
-        }
-      })
-      .then(result => console.log('Success:', result))
-      .catch(error => console.error('Error:', error));
-  }
-
-  // TODO: updateDatabase()
-  static updateDatabase() {
-    DBHelper.addOfflineFavoritesToDatabase();
-    DBHelper.addOfflineReviewsToDatabase();
-  }
-
-  /* ======================================================== */
-  /*  - RESTAURANTS                                           */
-  /* ======================================================== */
+  /* ============================================================================ */
+  /*  - RESTAURANTS                                                               */
+  /* ============================================================================ */
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    const objStore = 'restaurants';
     let fetchedFromAPI = false;
 
     // Fetch restaurants data from IndexedDB database.
-    DBHelper.fetchFromIndexedDB(objStore)
+    DBHelper.fetchFromIndexedDB('restaurants')
       .then(data => {
         // If IndexedDB returns no/empty data, fetch from API.
         if (!data || data.length < 1) {
           console.log('Retrieving restaurant data from API.');
           fetchedFromAPI = true;
-          return DBHelper.fetchFromAPI(objStore);
+          return DBHelper.fetchFromAPI('restaurants');
         }
 
         console.log('Retrieving restaurant data from IndexedDB database.');
@@ -370,7 +229,7 @@ export class DBHelper {
         return data;
       })
       .then (data => {
-        if (fetchedFromAPI === false) {DBHelper.fetchFromAPI(objStore);}
+        if (fetchedFromAPI === false) {DBHelper.fetchFromAPI('restaurants');}
         callback(null, data);
       })
       .catch(error => {
@@ -452,24 +311,6 @@ export class DBHelper {
   }
 
   /**
-   * Fetch all neighborhoods with proper error handling.
-   */
-  static fetchNeighborhoods(callback) {
-    // Fetch all restaurants
-    DBHelper.fetchRestaurants((error, restaurants) => {
-      if (error) {
-        callback(error, null);
-      } else {
-        // Get all neighborhoods from all restaurants
-        const NEIGHBORHOODS = restaurants.map((v, i) => restaurants[i].neighborhood);
-        // Remove duplicates from neighborhoods
-        const UNIQUE_NEIGHBORHOODS = NEIGHBORHOODS.filter((v, i) => NEIGHBORHOODS.indexOf(v) == i);
-        callback(null, UNIQUE_NEIGHBORHOODS);
-      }
-    });
-  }
-
-  /**
    * Fetch all cuisines with proper error handling.
    */
   static fetchCuisines(callback) {
@@ -483,6 +324,24 @@ export class DBHelper {
         // Remove duplicates from cuisines
         const UNIQUE_CUISINES = CUISINES.filter((v, i) => CUISINES.indexOf(v) == i);
         callback(null, UNIQUE_CUISINES);
+      }
+    });
+  }
+
+  /**
+   * Fetch all neighborhoods with proper error handling.
+   */
+  static fetchNeighborhoods(callback) {
+    // Fetch all restaurants
+    DBHelper.fetchRestaurants((error, restaurants) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        // Get all neighborhoods from all restaurants
+        const NEIGHBORHOODS = restaurants.map((v, i) => restaurants[i].neighborhood);
+        // Remove duplicates from neighborhoods
+        const UNIQUE_NEIGHBORHOODS = NEIGHBORHOODS.filter((v, i) => NEIGHBORHOODS.indexOf(v) == i);
+        callback(null, UNIQUE_NEIGHBORHOODS);
       }
     });
   }
@@ -509,6 +368,9 @@ export class DBHelper {
     return `/images/unavailable`;
   }
 
+  /* ============================================================================ */
+  /*  - FAVORITES                                                                 */
+  /* ============================================================================ */
   /**
    * Check if restaurant is favorite to return appropriate icon
    */
@@ -521,36 +383,102 @@ export class DBHelper {
   }
 
   /**
-    * Update favorite information
-    */
-  static addFavoriteToDatabase(restaurantID, newFavoriteStatus) {
+   * Update favorite information
+   */
+  static updateFavoriteInDatabase(id, newStatus) {
     // For debugging:
     console.log('Updating favorite information');
-    // console.log(typeof newFavoriteStatus);
+    // console.log(typeof newStatus);
 
     // Variables for fetch request
-    const url = `${DBHelper.RESTAURANTS_DB_URL}/${restaurantID}/?is_favorite=${newFavoriteStatus}`;
+    const url = `${DBHelper.RESTAURANTS_DB_URL}/${id}/?is_favorite=${newStatus}`;
     const options = {
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({is_favorite: newFavoriteStatus})
+      body: JSON.stringify({is_favorite: newStatus})
     };
 
     // For debugging
-    // console.log(JSON.stringify({is_favorite: newFavoriteStatus}));
+    // console.log(JSON.stringify({is_favorite: newStatus}));
 
     fetch(url, options)
       .then(response => {return response.json();})
-      .then(data => DBHelper.updateIndexedDB(data))
+      .then(data => DBHelper.updateIndexedDB(data, 'restaurants'))
       .catch(error => console.warn('[ERROR]:', error));
   }
 
-  /* ======================================================== */
-  /*  - REVIEWS                                               */
-  /* ======================================================== */
+  /**
+   * Add updated favorite status to IndexedDB to save to database later.
+   */
+  static saveOfflineFavorite(id, newStatus) {
+    console.log('Saving updated favorite status offline...');
+
+    // Open offline favorites object store in IndexedDB
+    DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('offline-favorites', 'readwrite');
+        const store = tx.objectStore('offline-favorites');
+
+        // Store updated favorite status
+        store.put({
+          restaurant_id: id,
+          is_favorite: newStatus
+        });
+
+        return tx.complete;
+      })
+      .then(() => {
+        console.log('Updated favorite status successfully saved offline.')
+      })
+      .catch(error => {
+        console.log('Failed to save updated favorite status offline:', error)
+      });
+  }
+
+  /**
+   * Add offline favorite statuses to database.
+   */
+  static addOfflineFavoritesToDatabase() {
+    console.log('Adding offline favorite updates to database...');
+
+    // Open offline favorites object store.
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('offline-favorites');
+        const store = tx.objectStore('offline-favorites');
+
+        let isEmpty;
+
+        return store.getAll()
+          .then(allItems => {
+            if (!allItems || allItems.length < 1) {
+              isEmpty = true;
+              console.log('No offline favorites in cache.');
+              return;
+            }
+
+            allItems.forEach(item => {
+              DBHelper.updateFavoriteInDatabase(item.restaurant_id, item.is_favorite);
+            });
+          })
+          .then(() => {
+            if (!isEmpty) {
+              DBHelper.emptyObjectStore('offline-favorites');
+            }
+          });
+      })
+  }
+
+  /* ============================================================================ */
+  /*  - REVIEWS                                                                   */
+  /* ============================================================================ */
   /**
    * Fetch all reviews by restaurant id
    */
@@ -561,19 +489,19 @@ export class DBHelper {
       .then(data => {
         // If IndexedDB returns no/empty data, fetch from API.
         if (!data || data.length < 1) {
-          console.log('Retrieving reviews data from API.');
+          console.log('Retrieving reviews data from API...');
           fetchedFromAPI = true;
           return DBHelper.fetchFromAPI('reviews', id);
         }
 
-        console.log('Retrieving reviews data from IndexedDB database.');
+        console.log('Retrieving reviews data from IndexedDB database...');
 
         // Return data to pass into callback function.
         return data;
       })
       .then(data => {
         if (fetchedFromAPI === false) {
-          console.log('Calling to API...');
+          console.log('Calling to API to update reviews cache...');
           DBHelper.fetchFromAPI('reviews', id);
         }
         callback(null, data);
@@ -584,9 +512,142 @@ export class DBHelper {
       });
   }
 
-  /* ======================================================== */
-  /*  - MAPS                                                  */
-  /* ======================================================== */
+  /**
+   * Add new restaurant review.
+   */
+  static addReviewToDatabase(input) {
+    // For debugging only:
+    // console.log('Input:', input);
+    console.log('Adding review to database...');
+
+    // Create review object with data from new review form.
+    const review = {
+      restaurant_id: input.restaurant_id,
+      name: input.name,
+      createdAt: input.createdAt,
+      updatedAt: input.updatedAt,
+      rating: input.rating,
+      comments: input.comments
+    };
+
+    // For debugging only
+    // console.log('Review:', review);
+
+    // Variables for fetch request
+    const url = DBHelper.REVIEWS_DB_URL;
+    const options = {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(review)
+    };
+
+    // Fetch request to POST new review to database
+    fetch(url, options)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`Fetch to post request rejected with status: ${response.status}`);
+        }
+      })
+      .then(result => {
+        console.log('Success:', result);
+
+        // Add newly added review to the reviews IDB store
+        DBHelper.addToIndexedDB(result, 'reviews');
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  // Fetch all offline reviews by restaurant id (when applicable)
+  static fetchOfflineReviews(id, callback) {
+    DBHelper.fetchFromIndexedDB('offline-reviews', id)
+      .then(reviews => {
+        // If IndexedDB returns no/empty reviews, abort
+        if (!reviews || reviews.length < 1) {
+          console.log('No offline reviews in cache to display.');
+          return;
+        }
+
+        console.log('Retrieving offline reviews data from IndexedDB database...');
+
+        return reviews;
+      })
+      .then(reviews => {
+        callback(null, reviews);
+      })
+      .catch(error => {
+        console.log('Unable to fetch offline reviews data:', error);
+        callback(error, null);
+      });
+  }
+
+  /**
+   * Save offline review to IndexedDB.
+   */
+  static saveOfflineReview(review) {
+    console.log('Saving offline review...');
+
+    // Open offline reviews object store
+    DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('offline-reviews', 'readwrite');
+        const store = tx.objectStore('offline-reviews');
+
+        // Store offline review
+        store.put({
+          restaurant_id: review.restaurant_id,
+          data: review
+        });
+
+        return tx.complete;
+      })
+      .then(() => console.log('New review successfully saved offline.'))
+      .catch(error => console.log('Failed to save review in IndexedDB:', error));
+  }
+
+  /**
+   * Add offline reviews to database.
+   */
+  static addOfflineReviewsToDatabase() {
+    console.log('Adding offline reviews to database...');
+
+    // Open offline reviews store
+    return DBHelper.openIndexedDB()
+      .then(db => {
+        if (!db) return;
+
+        const tx = db.transaction('offline-reviews');
+        const store = tx.objectStore('offline-reviews');
+
+        let isEmpty;
+
+        return store.getAll()
+          .then(allItems => {
+            if (!allItems || allItems.length < 1) {
+              isEmpty = true;
+              console.log('No offline reviews in cache.');
+              return;
+            }
+
+            allItems.forEach(item => {
+              DBHelper.addReviewToDatabase(item.data);
+            });
+          })
+          .then(() => {
+            if (!isEmpty) {
+              DBHelper.emptyObjectStore('offline-reviews');
+            }
+          });
+      });
+  }
+  /* ============================================================================ */
+  /*  - MAPS                                                                      */
+  /* ============================================================================ */
   /**
    * Map marker for a restaurant.
    */
@@ -601,6 +662,15 @@ export class DBHelper {
     return MARKER;
   }
 
+  /**
+   * Set title on iframe to fulfill accessibility requirements
+   */
+  static setTitleOnIframe() {
+    document.querySelectorAll('#map iframe').forEach((el) => {
+      el.setAttribute('title', 'Restaurant locations on Google Maps');
+    });
+  }
+
 /**
  * Remove map (and all descendants) from tab order
  */
@@ -610,18 +680,9 @@ export class DBHelper {
     });
   }
 
-  /* ======================================================== */
-  /*  - HELPERS                                               */
-  /* ======================================================== */
-/**
- * Set title on iframe to fulfill accessibility requirements
- */
-  static setTitleOnIframe() {
-    document.querySelectorAll('#map iframe').forEach((el) => {
-      el.setAttribute('title', 'Restaurant locations on Google Maps');
-    });
-  }
-
+  /* ============================================================================ */
+  /*  - OTHERS HELPERS                                                            */
+  /* ============================================================================ */
   /**
    * Format date as Month DD, YYYY
    */

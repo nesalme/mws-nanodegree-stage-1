@@ -465,16 +465,21 @@ h6 {
   list-style: none;
   margin: 0 0 2em;
   overflow: hidden;
-  padding: 0.8em 1.2em;
+  padding: 1em 1.2em;
   position: relative;
 
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .reviews__item:last-child {
   margin: 0;
+}
+
+.offline-review {
+  background-color: rgba(76, 84, 84, 0.08);
 }
 
 .review__author {
@@ -482,25 +487,31 @@ h6 {
   font-weight: 600;
   color: #757575;
   line-height: 1.1;
-  flex-grow: 2;
-  flex-basis: 12em;
+  flex: 2 0 12em;
+  margin-right: auto;
 }
 
 .review__date {
   font-size: 0.8em;
   color: #757575;
   width: 100%;
+  flex: 1 1;
 }
 
 .review__rating {
+  position: absolute;
+  top: 0.8em;
+  right: 1em;
   font-size: 0.95em;
   font-weight: 600;
   color: #3397DB;
-  text-align: right;
-  flex-grow: 1;
-  flex-basis: 5em;
-  line-height: 0;
+  margin-left: auto;
 }
+
+.offline-review .review__rating {
+  color: #A32C00;
+}
+
 .review__comments {
   margin-top: 0.5em;
 }
