@@ -13,9 +13,10 @@ const URLS = {
 
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
-/**
- * Fetch neighborhoods and cuisines as soon as the page is loaded.
- */
+/* ============================================================================ */
+/*  - GLOBAL EVENTS                                                             */
+/* ============================================================================ */
+// Fetch neighborhoods and cuisines as soon as the page is loaded.
 document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
@@ -27,9 +28,7 @@ window.addEventListener('online', DBHelper.updateDatabase);
 // Trigger console warning when offline
 window.addEventListener('offline', event => console.log('You are now offline'));
 
-/**
- * Handle click events on the entire page (minus click on favorite icon)
- */
+// Handle click events on the entire page (minus click on favorite icon)
 document.addEventListener('click', event => {
   /* Handle click event on map icon */
   if (event.target.matches('.map__icon')) {
@@ -42,6 +41,9 @@ document.addEventListener('click', event => {
   }
 }, false);
 
+/* ============================================================================ */
+/*  - RESTAURANTS                                                               */
+/* ============================================================================ */
 /**
  * Fetch all neighborhoods and set their HTML.
  */
@@ -54,7 +56,7 @@ const fetchNeighborhoods = () => {
       fillNeighborhoodsHTML();
     }
   });
-}
+};
 
 /**
  * Set neighborhoods HTML.
@@ -67,7 +69,7 @@ const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     OPTION.value = neighborhood;
     SELECT.append(OPTION);
   });
-}
+};
 
 /**
  * Fetch all cuisines and set their HTML.
@@ -81,7 +83,7 @@ const fetchCuisines = () => {
       fillCuisinesHTML();
     }
   });
-}
+};
 
 /**
  * Set cuisines HTML.
@@ -95,7 +97,7 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
     OPTION.value = cuisine;
     SELECT.append(OPTION);
   });
-}
+};
 
 /**
  * Update page and map for current restaurants.
@@ -118,7 +120,7 @@ const updateRestaurants = () => {
       fillRestaurantsHTML();
     }
   })
-}
+};
 
 /**
  * Clear current restaurants, their HTML and remove their map markers.
@@ -137,7 +139,7 @@ const resetRestaurants = (restaurants) => {
   self.markers.forEach(m => m.setMap(null));
   self.markers = [];
   self.restaurants = restaurants;
-}
+};
 
 /**
  * Create all restaurants HTML and add them to the webpage.
@@ -148,7 +150,7 @@ const fillRestaurantsHTML = (restaurants = self.restaurants) => {
     UL.append(createRestaurantHTML(restaurant));
   });
   addMarkersToMap();
-}
+};
 
 /**
  * Create HTML for each restaurant.
@@ -253,8 +255,11 @@ const createRestaurantHTML = (restaurant) => {
   CARD.append(MORE);
 
   return LI;
-}
+};
 
+/* ============================================================================ */
+/*  - FAVORITES                                                                 */
+/* ============================================================================ */
 /**
   * Select appropriate (un)favorite icon depending on database value
   */
@@ -293,6 +298,9 @@ const toggleFavoriteIcon = (target, id) => {
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
 };
 
+/* ============================================================================ */
+/*  - MAP                                                                       */
+/* ============================================================================ */
 /**
  * Add markers for current restaurants to the map.
  */
@@ -305,7 +313,7 @@ const addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(MARKER);
   });
-}
+};
 
 /**
  * Resolve accessibility issues relating to Google Maps JS API
@@ -317,7 +325,7 @@ const improveMapAccessibility = () => {
     // Remove map (and its children) from tab order
     DBHelper.removeMapsTabOrder();
   }, 1000);
-}
+};
 
 /**
   * Toggle map on click
@@ -346,6 +354,9 @@ window.initMap = () => {
 // Expose updateRestaurants() function to window/global scope
 window.updateRestaurants = updateRestaurants;
 
+/* ============================================================================ */
+/*  - SERVICE WORKER                                                            */
+/* ============================================================================ */
 /**
  * Register service worker for offline-first
  */

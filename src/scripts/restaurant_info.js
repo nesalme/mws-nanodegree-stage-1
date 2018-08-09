@@ -10,14 +10,16 @@ const URLS = {
 
 let restaurant, map;
 
-/**
- * On page load...
- */
+/* ============================================================================ */
+/*  - GLOBAL EVENTS                                                             */
+/* ============================================================================ */
+// On page load
 document.addEventListener('DOMContentLoaded', () => {
   // Listen for click events on review form submit button
   let formSubmitBtn = document.getElementById('review-submit-btn');
   formSubmitBtn.addEventListener('click', submitReview);
 
+  // If online, update database
   if (navigator.onLine) {
     DBHelper.updateDatabase();
   }
@@ -29,6 +31,9 @@ window.addEventListener('online', DBHelper.updateDatabase);
 // Trigger console warning when offline
 window.addEventListener('offline', event => console.log('You are now offline'));
 
+/* ============================================================================ */
+/*  - MAP                                                                       */
+/* ============================================================================ */
 /**
  * Initialize Google map, called from HTML.
  */
@@ -49,6 +54,21 @@ window.initMap = () => {
   });
 }
 
+/**
+ * Resolve accessibility issues relating to Google Maps JS API
+ */
+const improveMapAccessibility = () => {
+  const INTERVAL = setInterval(() => {
+    // Set title for map's <iframe>
+    DBHelper.setTitleOnIframe();
+    // Remove map (and its children) from tab order
+    DBHelper.removeMapsTabOrder();
+  }, 1000);
+};
+
+/* ============================================================================ */
+/*  - RESTAURANT                                                                */
+/* ============================================================================ */
 /**
  * Get current restaurant from page URL.
  */
@@ -73,7 +93,7 @@ const fetchRestaurantFromURL = (callback) => {
       callback(null, restaurant);
     });
   }
-}
+};
 
 /**
  * Create restaurant HTML and add it to the webpage
@@ -149,7 +169,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
 
   // Fill reviews with offline reviews (fetched from offline-reviews IDB store)
   DBHelper.fetchOfflineReviews(restaurant.id, fillOfflineReviewsHTML);
-}
+};
 
 /**
  * Create restaurant operating hours HTML table and add it to the webpage.
@@ -175,6 +195,77 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
   }
 };
 
+/**
+ * Add restaurant name to the breadcrumb navigation menu
+ */
+const fillBreadcrumb = (restaurant = self.restaurant) => {
+  const BREADCRUMB = document.getElementById('breadcrumb');
+  const LI = document.createElement('li');
+  LI.innerHTML = restaurant.name;
+  LI.setAttribute('aria-current', 'page');
+  BREADCRUMB.appendChild(LI);
+};
+
+/**
+ * Get a parameter by name from page URL.
+ */
+const getParameterByName = (name, url) => {
+  if (!url)
+    url = window.location.href;
+  name = name.replace(/[\[\]]/g, '\\$&');
+  const REGEX = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+    results = REGEX.exec(url);
+  if (!results)
+    return null;
+  if (!results[2])
+    return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+};
+
+/* ============================================================================ */
+/*  - FAVORITES                                                                 */
+/* ============================================================================ */
+/**
+  * Select appropriate (un)favorite icon depending on database value
+  */
+ const selectIcon = (restaurant) => {
+  if (DBHelper.isFavorite(restaurant)) {return URLS.favoriteIcon;}
+  return URLS.notFavoriteIcon;
+};
+
+/**
+  * Handle click on a restaurant's favorite icon
+  */
+const handleFavoriteClick = (event, restaurant) => {
+  const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
+  const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
+
+  // Change icon in the UI
+  toggleFavoriteIcon(event.target);
+
+  if (navigator.onLine) {
+    // When online, update database
+    DBHelper.updateFavoriteInDatabase(restaurant.id, NEW_FAV_STATUS);
+  } else {
+    // Otherwise, save favorite change in IndexedDB to be saved in database later
+    DBHelper.saveOfflineFavorite(restaurant.id, NEW_FAV_STATUS);
+  }
+};
+
+/**
+  * Toggle favorite icon
+  */
+const toggleFavoriteIcon = (target) => {
+  const ICON_NODE = document.getElementById('restaurant__favorite-use'); // ie, <use>
+  const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
+  const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
+
+  ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
+};
+
+/* ============================================================================ */
+/*  - REVIEWS                                                                   */
+/* ============================================================================ */
 /**
  * Create all reviews HTML and add them to the webpage.
  */
@@ -206,7 +297,9 @@ const fillReviewsHTML = (error, reviews) => {
   CONTAINER.appendChild(UL);
 };
 
-// Create HTML for offline reviews and add them to the webpage.
+/**
+ * Create HTML for offline reviews and add them to the webpage.
+ */
 const fillOfflineReviewsHTML = (error, reviews) => {
   if (!reviews) return;
 
@@ -267,7 +360,9 @@ const createReviewHTML = (review) => {
   return LI;
 };
 
-// Add new review to UI
+/**
+ * Add new review to UI.
+ */
 const addNewReviewToUI = (review, status) => {
   const UL = document.getElementById('reviews__list');
   UL.appendChild(createReviewHTML(review));
@@ -275,83 +370,6 @@ const addNewReviewToUI = (review, status) => {
   if (status === 'offline') {
     UL.lastChild.classList.add('offline-review');
   }
-};
-
-/**
- * Add restaurant name to the breadcrumb navigation menu
- */
-const fillBreadcrumb = (restaurant = self.restaurant) => {
-  const BREADCRUMB = document.getElementById('breadcrumb');
-  const LI = document.createElement('li');
-  LI.innerHTML = restaurant.name;
-  LI.setAttribute('aria-current', 'page');
-  BREADCRUMB.appendChild(LI);
-}
-
-/**
- * Get a parameter by name from page URL.
- */
-const getParameterByName = (name, url) => {
-  if (!url)
-    url = window.location.href;
-  name = name.replace(/[\[\]]/g, '\\$&');
-  const REGEX = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-    results = REGEX.exec(url);
-  if (!results)
-    return null;
-  if (!results[2])
-    return '';
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-/**
- * Resolve accessibility issues relating to Google Maps JS API
- */
-const improveMapAccessibility = () => {
-  const INTERVAL = setInterval(() => {
-    // Set title for map's <iframe>
-    DBHelper.setTitleOnIframe();
-    // Remove map (and its children) from tab order
-    DBHelper.removeMapsTabOrder();
-  }, 1000);
-}
-
-/**
-  * Select appropriate (un)favorite icon depending on database value
-  */
- const selectIcon = (restaurant) => {
-  if (DBHelper.isFavorite(restaurant)) {return URLS.favoriteIcon;}
-  return URLS.notFavoriteIcon;
-};
-
-/**
-  * Handle click on a restaurant's favorite icon
-  */
-const handleFavoriteClick = (event, restaurant) => {
-  const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
-  const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
-
-  // Change icon in the UI
-  toggleFavoriteIcon(event.target);
-
-  if (navigator.onLine) {
-    // When online, update database
-    DBHelper.updateFavoriteInDatabase(restaurant.id, NEW_FAV_STATUS);
-  } else {
-    // Otherwise, save favorite change in IndexedDB to be saved in database later
-    DBHelper.saveOfflineFavorite(restaurant.id, NEW_FAV_STATUS);
-  }
-};
-
-/**
-  * Toggle favorite icon
-  */
-const toggleFavoriteIcon = (target) => {
-  const ICON_NODE = document.getElementById('restaurant__favorite-use'); // ie, <use>
-  const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
-  const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;
-
-  ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
 };
 
 /**
@@ -460,6 +478,9 @@ function allInputIsValid() {
   if (nameInputIsValid() && commentsInputIsValid()) {return true;}
 }
 
+/* ============================================================================ */
+/*  - SERVICE WORKER                                                            */
+/* ============================================================================ */
 /**
  * Register service worker for offline-first
  */
