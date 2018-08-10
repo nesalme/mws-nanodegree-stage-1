@@ -38,8 +38,6 @@ export class DBHelper {
       url = `${DBHelper.REVIEWS_DB_URL}/?restaurant_id=${id}`;
     }
 
-    console.log(url);
-
     // Fetch JSON data from API and parse.
     return fetch(url, {
       headers: new Headers({
@@ -47,7 +45,7 @@ export class DBHelper {
       })
     }).then(response => response.json())
       .then(data => {
-        console.log('Updating IndexedDB with new data...', data);
+        console.log('Updating IndexedDB with new data from API...', data);
 
         // Update IndexedDB database with fresh data fetched from API and return.
         DBHelper.addToIndexedDB(data, type);
@@ -78,17 +76,15 @@ export class DBHelper {
     const DB_VERSION = 1;
 
     return idb.open(DB_NAME, DB_VERSION, upgradeDB => {
-      console.log('Creating a new object store');
-
       // Create object store for restaurant data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('restaurants')) {
-        console.log('Creating new object store: restaurants');
+        // console.log('Creating new object store: restaurants');
         upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
       }
 
       // Create object store for reviews data (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('reviews')) {
-        console.log('Creating new object store: reviews');
+        // console.log('Creating new object store: reviews');
         const reviewsOS = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
         // Create restaurant id index on reviews object store
         reviewsOS.createIndex('restaurant_id', 'restaurant_id', {unique: false});
@@ -96,7 +92,7 @@ export class DBHelper {
 
       // Create object store for offline reviews (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('offline-reviews')) {
-        console.log('Creating new object store: offline-reviews');
+        // console.log('Creating new object store: offline-reviews');
         const offlineReviewsOS = upgradeDB.createObjectStore('offline-reviews', {
           keyPath: 'id',
           autoIncrement: true
@@ -107,7 +103,7 @@ export class DBHelper {
 
       // Create object store for offline favorites (only if none exists yet)
       if (!upgradeDB.objectStoreNames.contains('offline-favorites')) {
-        console.log('Creating new object store: offline-favorites');
+        // console.log('Creating new object store: offline-favorites');
         upgradeDB.createObjectStore('offline-favorites', {
           keyPath: 'restaurant_id',
           unique: true
@@ -156,6 +152,11 @@ export class DBHelper {
         if (objStore === 'reviews' || objStore === 'offline-reviews') {
           const index = store.index('restaurant_id');
           return index.getAll(id);
+        }
+
+        // For offline favorites object store, get item by id
+        if (objStore === 'offline-favorites') {
+          return store.get(id);
         }
 
         // For restaurants and favorites, return all items in object store.
@@ -383,11 +384,48 @@ export class DBHelper {
   }
 
   /**
+   * Check if restaurant has been (un)marked favorite offline
+   */
+  static hasOfflineFavorite(restaurant) {
+    // For debugging:
+    console.log('Checking if restaurant has been (un)marked favorite offline...');
+
+    return DBHelper.fetchFromIndexedDB('offline-favorites', restaurant.id)
+      .then(result => {
+        if (!result || result.length < 1) {
+          console.log('Result of fetching offline favorite from IDB:', result);
+          return false;
+        } else {
+          console.log('Result of fetching offline favorite from IDB:', result);
+          return true;
+        }
+      });
+  }
+
+  /**
+   * Check if restaurant is favorite, when it has an offline favorite status
+   */
+  static isOfflineFavorite(restaurant) {
+    // For debugging:
+    console.log('Checking offline favorite status for restaurant...');
+
+    return DBHelper.fetchFromIndexedDB('offline-favorites', restaurant.id)
+      .then(data => {
+        console.log(data);
+        if (!data.is_favorite) {
+          return false;
+        } else {
+          return true;
+        }
+      });
+  }
+
+  /**
    * Update favorite information
    */
   static updateFavoriteInDatabase(id, newStatus) {
     // For debugging:
-    console.log('Updating favorite information');
+    console.log('Updating favorite information...');
     // console.log(typeof newStatus);
 
     // Variables for fetch request
@@ -405,8 +443,13 @@ export class DBHelper {
     // console.log(JSON.stringify({is_favorite: newStatus}));
 
     fetch(url, options)
-      .then(response => {return response.json();})
-      .then(data => DBHelper.updateIndexedDB(data, 'restaurants'))
+      .then(response => {
+        return response.json();
+      })
+      .then(data => {
+        console.log('Updating IndexedDB:', data);
+        DBHelper.updateIndexedDB(data, 'restaurants');
+      })
       .catch(error => console.warn('[ERROR]:', error));
   }
 
@@ -561,7 +604,9 @@ export class DBHelper {
       .catch(error => console.error('Error:', error));
   }
 
-  // Fetch all offline reviews by restaurant id (when applicable)
+  /**
+ * Fetch all offline reviews by restaurant id (when applicable)
+ */
   static fetchOfflineReviews(id, callback) {
     DBHelper.fetchFromIndexedDB('offline-reviews', id)
       .then(reviews => {
@@ -671,7 +716,7 @@ export class DBHelper {
     });
   }
 
-/**
+  /**
  * Remove map (and all descendants) from tab order
  */
   static removeMapsTabOrder() {

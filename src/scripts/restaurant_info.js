@@ -106,7 +106,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   // Add clickable icon to (un)favorite restaurant
   // (icon within anchor element to improve user interaction - ie, increased clickable area)
   const FAV_ANCHOR = document.getElementById('restaurant__icon-anchor');
-  FAV_ANCHOR.onclick = (event) => handleFavoriteClick(event, restaurant);
+  FAV_ANCHOR.onclick = () => handleFavoriteClick(restaurant);
 
   const FAV_TITLE = document.getElementById('restaurant__favorite-title');
   FAV_TITLE.innerHTML = DBHelper.isFavorite(restaurant) ? 'Favorite restaurant' : 'Not favorite restaurant';
@@ -229,33 +229,44 @@ const getParameterByName = (name, url) => {
   * Select appropriate (un)favorite icon depending on database value
   */
  const selectIcon = (restaurant) => {
-  if (DBHelper.isFavorite(restaurant)) {return URLS.favoriteIcon;}
-  return URLS.notFavoriteIcon;
+  let icon;
+
+  if (DBHelper.hasOfflineFavorite(restaurant) === true) {
+    icon = DBHelper.isOfflineFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  } else {
+    icon = DBHelper.isFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  }
+
+  return icon;
 };
 
 /**
   * Handle click on a restaurant's favorite icon
   */
-const handleFavoriteClick = (event, restaurant) => {
-  const CURRENT_FAV_STATUS = DBHelper.isFavorite(restaurant);
-  const NEW_FAV_STATUS = !CURRENT_FAV_STATUS;
+const handleFavoriteClick = (restaurant) => {
+  const newFavoriteStatus = (restaurant.is_favorite == true) ? false : true;
+
+  if (!navigator.onLine) {
+    // If offline, save new favorite status in IndexedDB to be saved to database later
+    // console.log('>>> You are currently offline.');
+    DBHelper.saveOfflineFavorite(restaurant.id, newFavoriteStatus);
+  } else {
+    // If online, update favorite data in database
+    // console.log('>>> You are currently online.');
+    DBHelper.updateFavoriteInDatabase(restaurant.id, newFavoriteStatus);
+  }
+
+  // Update local restaurant object
+  restaurant.is_favorite = newFavoriteStatus;
 
   // Change icon in the UI
-  toggleFavoriteIcon(event.target);
-
-  if (navigator.onLine) {
-    // When online, update database
-    DBHelper.updateFavoriteInDatabase(restaurant.id, NEW_FAV_STATUS);
-  } else {
-    // Otherwise, save favorite change in IndexedDB to be saved in database later
-    DBHelper.saveOfflineFavorite(restaurant.id, NEW_FAV_STATUS);
-  }
+  toggleFavoriteIcon();
 };
 
 /**
   * Toggle favorite icon
   */
-const toggleFavoriteIcon = (target) => {
+const toggleFavoriteIcon = () => {
   const ICON_NODE = document.getElementById('restaurant__favorite-use'); // ie, <use>
   const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
   const NEW_ICON = CURRENT_ICON === URLS.favoriteIcon ? URLS.notFavoriteIcon : URLS.favoriteIcon;

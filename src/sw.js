@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Ignore non-GET requests: they cannot be cached using the Cache API
   if (event.request.method !== 'GET') {
-    console.log('[Service Worker] Fetch event ignored.', event.request.method, event.request.url);
+    // console.log('[Service Worker] Fetch event ignored.', event.request.method, event.request.url);
     return;
   }
 
