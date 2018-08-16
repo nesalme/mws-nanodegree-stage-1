@@ -22,16 +22,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchCuisines();
 });
 
-// Check if online to update database with any items saved while offline
-window.addEventListener('online', DBHelper.updateDatabase);
-
-// Trigger console warning when offline
-window.addEventListener('offline', event => console.log('You are now offline'));
-
 // Handle click events on the entire page (minus click on favorite icon)
 document.addEventListener('click', event => {
   /* Handle click event on map icon */
-  if (event.target.matches('.map__icon')) {
+  if (event.target.matches('.map__toggle')) {
       event.preventDefault();
       toggleMap();
 
@@ -40,6 +34,31 @@ document.addEventListener('click', event => {
     return;
   }
 }, false);
+
+// Check if online to update database with any items saved while offline
+window.addEventListener('online', DBHelper.updateDatabase);
+
+// Trigger console warning when offline
+window.addEventListener('offline', event => console.log('You are now offline'));
+
+
+// Initialize Google map, called from HTML.
+window.initMap = () => {
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+  self.map = new google.maps.Map(MAP_DOM, {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+  updateRestaurants();
+  self.map.addListener('tilesloaded', improveMapAccessibility);
+}
+
+// Expose updateRestaurants() function to window/global scope
+window.updateRestaurants = updateRestaurants;
 
 /* ============================================================================ */
 /*  - RESTAURANTS                                                               */
@@ -197,8 +216,8 @@ const createRestaurantHTML = (restaurant) => {
 
   // Add clickable icon to (un)favorite restaurant
   // (icon within anchor element to improve user interaction - ie, increased clickable area)
-  const FAV_ANCHOR = document.createElement('a');
-  FAV_ANCHOR.className = 'restaurant__icon-anchor';
+  const FAV_BUTTON = document.createElement('button');
+  FAV_BUTTON.className = 'restaurant__favorite-btn';
 
   const FAV_SVG = document.createElementNS(URLS.svg, 'svg');
   FAV_SVG.setAttributeNS(null, 'class', 'restaurant__favorite');
@@ -220,13 +239,13 @@ const createRestaurantHTML = (restaurant) => {
   // For debugging:
   // console.log(`${restaurant.name} is favorite? -- ${restaurant.is_favorite} (${typeof restaurant.is_favorite})`);
 
-  FAV_ANCHOR.onclick = (event) => handleFavoriteClick(event, restaurant);
+  FAV_BUTTON.onclick = (event) => handleFavoriteClick(event, restaurant);
 
   FAV_SVG.appendChild(FAV_TITLE);
   FAV_SVG.appendChild(FAV_DESCRIPTION);
   FAV_SVG.appendChild(FAV_USE);
-  FAV_ANCHOR.appendChild(FAV_SVG);
-  CARD.append(FAV_ANCHOR);
+  FAV_BUTTON.appendChild(FAV_SVG);
+  CARD.append(FAV_BUTTON);
 
   // Add restaurant name
   const NAME = document.createElement('h3');
@@ -342,26 +361,6 @@ const improveMapAccessibility = () => {
 const toggleMap = () => {
   MAP_DOM.style.display = MAP_DOM.style.display === 'block' ? 'none' : 'block';
 };
-
-/**
- * Initialize Google map, called from HTML.
- */
-window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(MAP_DOM, {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
-  self.map.addListener('tilesloaded', improveMapAccessibility);
-}
-
-// Expose updateRestaurants() function to window/global scope
-window.updateRestaurants = updateRestaurants;
 
 /* ============================================================================ */
 /*  - SERVICE WORKER                                                            */

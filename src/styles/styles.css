@@ -243,15 +243,18 @@ h6 {
   background-image: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.2));
 }
 
-/* <a> around svg makes entire icon clickable to (un)mark as favorite */
-.restaurant__icon-anchor {
+.restaurant__favorite-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  border: none;
   cursor: pointer;
   display: block;
-  height: 2.3em;
+  height: 4em;
+  padding: 0.75em;
   position: absolute;
   right: 0.8em;
   top: 0.8em;
-  width: 2.3em;
+  width: 4em;
 }
 
 .restaurant__favorite {
@@ -426,7 +429,7 @@ h6 {
 .opening-hours__day {
   padding: 0.6em 0.5em;
   font-weight: 600;
-  color: #757575;
+  color: #636363;
   text-align: left;
 }
 
@@ -504,7 +507,7 @@ h6 {
   right: 1em;
   font-size: 0.95em;
   font-weight: 600;
-  color: #3397DB;
+  color: #1B7BC0;
   margin-left: auto;
 }
 
@@ -887,7 +890,7 @@ h6 {
     border-radius: 9px 0 0 9px;
   }
 
-  .restaurant__icon-anchor {
+  .restaurant__favorite-btn {
     left: 1.2em;
     top: 1.2em;
   }

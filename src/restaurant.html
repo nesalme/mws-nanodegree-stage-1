@@ -41,13 +41,14 @@
       <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
 
       <div class="restaurant-details__image-box">
-        <a class="restaurant__icon-anchor" id="restaurant__icon-anchor">
-          <svg class="restaurant__favorite" id="restaurant__favorite" aria-labelledby="restaurant__favorite-title" aria-describedby="restaurant__favorite-desc">
+        <button class="restaurant__favorite-btn" id="restaurant__favorite-btn">
+          <svg class="restaurant__favorite" id="restaurant__favorite" aria-labelledby="restaurant__favorite-title" aria-describedby="restaurant__favorite-desc" role="presentation">
             <title id="restaurant__favorite-title"></title>
             <desc id="restaurant__favorite-desc"></desc>
             <use id="restaurant__favorite-use"></use>
           </svg>
-        </a>
+        </button>
+
         <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
         <p class="restaurant-details__cuisine" id="restaurant-details__cuisine"></p>
       </div>
@@ -69,55 +70,54 @@
     </section>
 
     <section class="review__submission">
-      <h3 class="reviews__heading">Add Review</h3>
+      <h3 class="reviews__heading" id="review-form__heading">Add Review</h3>
 
-      <form class="review-form" id="review-form" method="post" action="#">
+      <form class="review-form" id="review-form" method="post" aria-labelledby="review-form__heading" role="form">
         <div class="review-form__author">
           <label class="review-form__label" for="review-author">Name</label>
           <input type="text" name="name" id="review-author" class="review-form__input" placeholder="Write your name here..." maxlength="30" minlength="3" required aria-required="true">
         </div>
 
-        <!-- TODO: Add key input 1-5 to each rating -->
         <div class="review-form__rating">
-          <h4 class="review-form__label">Rating</h4>
-          <div class="rating__group">
+          <h4 class="review-form__label" id="review-form__rating-group">Rating</h4>
+          <div class="rating__group" role="radiogroup" aria-labelledby="review-form__rating-group">
             <div class="rating__item">
               <label for="review-star-1" class="rating-label">★</label>
-              <input type="radio" name="rating" id="review-star-1" class="rating-star" required aria-required="true" value="1 star">
+              <input type="radio" name="rating" id="review-star-1" class="rating-star" aria-checked="false" required aria-required="true" value="1 star" tabindex="-1" aria-label="1 star">
             </div>
 
             <div class="rating__item">
               <label for="review-star-2" class="rating-label">★★</label>
-              <input type="radio" name="rating" id="review-star-2" class="rating-star" required aria-required="true" value="2 stars">
+              <input type="radio" name="rating" id="review-star-2" class="rating-star" aria-checked="false" required aria-required="true" value="2 stars" tabindex="-1" aria-label="2 stars">
             </div>
 
             <div class="rating__item">
               <label for="review-star-3" class="rating-label">★★★</label>
-              <input type="radio" name="rating" id="review-star-3" class="rating-star" required aria-required="true" value="3 stars">
+              <input type="radio" name="rating" id="review-star-3" class="rating-star" aria-checked="false" required aria-required="true" value="3 stars" tabindex="-1" aria-label="3 stars">
             </div>
 
             <div class="rating__item">
               <label for="review-star-4" class="rating-label">★★★★</label>
-              <input type="radio" name="rating" id="review-star-4" class="rating-star" required aria-required="true" value="4 stars">
+              <input type="radio" name="rating" id="review-star-4" class="rating-star" aria-checked="false" required aria-required="true" value="4 stars" tabindex="-1" aria-label="4 stars">
             </div>
 
             <div class="rating__item">
               <label for="review-star-5" class="rating-label">★★★★★</label>
-              <input type="radio" name="rating" id="review-star-5" class="rating-star" checked aria-checked="true" required aria-required="true" value="5 stars">
+              <input type="radio" name="rating" id="review-star-5" class="rating-star" checked aria-checked="true" required aria-required="true" value="5 stars" tabindex="0" aria-label="5 stars">
             </div>
           </div>
         </div>
 
         <div class="review-form__comments">
           <label for="review-comments" class="review-form__label">Comments</label>
-          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true" minlength="5" maxlength="900"></textarea>
+          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true" minlength="5" maxlength="900" aria-multiline="true"></textarea>
         </div>
 
         <div class="review-form__footer">
           <div class="form-alert" id="form-alert" aria-live="polite"></div>
 
           <div class="review-form__submit">
-            <button type="submit" class="submit-btn" id="review-submit-btn">Submit</button>
+            <button type="submit" class="submit-btn" id="review-submit-btn" aria-describedby="form-alert">Submit</button>
           </div>
         </div>
       </form>

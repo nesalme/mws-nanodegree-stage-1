@@ -104,9 +104,8 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   NAME.innerHTML = restaurant.name;
 
   // Add clickable icon to (un)favorite restaurant
-  // (icon within anchor element to improve user interaction - ie, increased clickable area)
-  const FAV_ANCHOR = document.getElementById('restaurant__icon-anchor');
-  FAV_ANCHOR.onclick = () => handleFavoriteClick(restaurant);
+  const FAV_BUTTON = document.getElementById('restaurant__favorite-btn');
+  FAV_BUTTON.onclick = () => handleFavoriteClick(restaurant);
 
   const FAV_TITLE = document.getElementById('restaurant__favorite-title');
   FAV_TITLE.innerHTML = DBHelper.isFavorite(restaurant) ? 'Favorite restaurant' : 'Not favorite restaurant';
