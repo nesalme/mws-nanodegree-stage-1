@@ -10,9 +10,9 @@ const URLS = {
 
 let restaurant, map;
 
-/* ============================================================================ */
-/*  - GLOBAL EVENTS                                                             */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                              GLOBAL EVENTS                              */
+/* ======================================================================= */
 // On page load
 document.addEventListener('DOMContentLoaded', () => {
   // Listen for click events on review form submit button
@@ -31,9 +31,9 @@ window.addEventListener('online', DBHelper.updateDatabase);
 // Trigger console warning when offline
 window.addEventListener('offline', event => console.log('You are now offline'));
 
-/* ============================================================================ */
-/*  - MAP                                                                       */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                                   MAP                                   */
+/* ======================================================================= */
 /**
  * Initialize Google map, called from HTML.
  */
@@ -66,9 +66,23 @@ const improveMapAccessibility = () => {
   }, 1000);
 };
 
-/* ============================================================================ */
-/*  - RESTAURANT                                                                */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                                NAVIGATION                               */
+/* ======================================================================= */
+/**
+ * Add restaurant name to the breadcrumb navigation menu
+ */
+const fillBreadcrumb = (restaurant = self.restaurant) => {
+  const BREADCRUMB = document.getElementById('breadcrumb');
+  const LI = document.createElement('li');
+  LI.innerHTML = restaurant.name;
+  LI.setAttribute('aria-current', 'page');
+  BREADCRUMB.appendChild(LI);
+};
+
+/* ======================================================================= */
+/*                                RESTAURANT                               */
+/* ======================================================================= */
 /**
  * Get current restaurant from page URL.
  */
@@ -92,6 +106,30 @@ const fetchRestaurantFromURL = (callback) => {
       fillRestaurantHTML();
       callback(null, restaurant);
     });
+  }
+};
+
+/**
+ * Create restaurant operating hours HTML table and add it to the webpage.
+ */
+const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
+  const HOURS = document.getElementById('opening-hours__table');
+  for (let key in operatingHours) {
+    const ROW = document.createElement('tr');
+    ROW.className = 'opening-hours__row';
+
+    const DAY = document.createElement('th');
+    DAY.className = 'opening-hours__day';
+    DAY.setAttribute('scope','row');
+    DAY.innerHTML = key;
+    ROW.appendChild(DAY);
+
+    const TIME = document.createElement('td');
+    TIME.className = 'opening-hours__time';
+    TIME.innerHTML = operatingHours[key].replace(/ *, */g, '<br>');
+    ROW.appendChild(TIME);
+
+    HOURS.appendChild(ROW);
   }
 };
 
@@ -171,41 +209,6 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
 };
 
 /**
- * Create restaurant operating hours HTML table and add it to the webpage.
- */
-const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
-  const HOURS = document.getElementById('opening-hours__table');
-  for (let key in operatingHours) {
-    const ROW = document.createElement('tr');
-    ROW.className = 'opening-hours__row';
-
-    const DAY = document.createElement('th');
-    DAY.className = 'opening-hours__day';
-    DAY.setAttribute('scope','row');
-    DAY.innerHTML = key;
-    ROW.appendChild(DAY);
-
-    const TIME = document.createElement('td');
-    TIME.className = 'opening-hours__time';
-    TIME.innerHTML = operatingHours[key].replace(/ *, */g, '<br>');
-    ROW.appendChild(TIME);
-
-    HOURS.appendChild(ROW);
-  }
-};
-
-/**
- * Add restaurant name to the breadcrumb navigation menu
- */
-const fillBreadcrumb = (restaurant = self.restaurant) => {
-  const BREADCRUMB = document.getElementById('breadcrumb');
-  const LI = document.createElement('li');
-  LI.innerHTML = restaurant.name;
-  LI.setAttribute('aria-current', 'page');
-  BREADCRUMB.appendChild(LI);
-};
-
-/**
  * Get a parameter by name from page URL.
  */
 const getParameterByName = (name, url) => {
@@ -221,27 +224,12 @@ const getParameterByName = (name, url) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
-/* ============================================================================ */
-/*  - FAVORITES                                                                 */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                                FAVORITES                                */
+/* ======================================================================= */
 /**
-  * Select appropriate (un)favorite icon depending on database value
-  */
- const selectIcon = (restaurant) => {
-  let icon;
-
-  if (DBHelper.hasOfflineFavorite(restaurant) === true) {
-    icon = DBHelper.isOfflineFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
-  } else {
-    icon = DBHelper.isFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
-  }
-
-  return icon;
-};
-
-/**
-  * Handle click on a restaurant's favorite icon
-  */
+ * Handle click on a restaurant's favorite icon
+ */
 const handleFavoriteClick = (restaurant) => {
   const newFavoriteStatus = (restaurant.is_favorite == true) ? false : true;
 
@@ -263,8 +251,23 @@ const handleFavoriteClick = (restaurant) => {
 };
 
 /**
-  * Toggle favorite icon
-  */
+ * Select appropriate (un)favorite icon depending on database value
+ */
+const selectIcon = (restaurant) => {
+  let icon;
+
+  if (DBHelper.hasOfflineFavorite(restaurant) === true) {
+    icon = DBHelper.isOfflineFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  } else {
+    icon = DBHelper.isFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  }
+
+  return icon;
+};
+
+/**
+ * Toggle favorite icon
+ */
 const toggleFavoriteIcon = () => {
   const ICON_NODE = document.getElementById('restaurant__favorite-use'); // ie, <use>
   const CURRENT_ICON = ICON_NODE.getAttributeNS(URLS.xlink, 'href');
@@ -273,60 +276,127 @@ const toggleFavoriteIcon = () => {
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
 };
 
-/* ============================================================================ */
-/*  - REVIEWS                                                                   */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                                 REVIEWS                                 */
+/* ======================================================================= */
+/* ------------------------ Review form submission ----------------------- */
 /**
- * Create all reviews HTML and add them to the webpage.
+ * Reset all input fields in review form
  */
-const fillReviewsHTML = (error, reviews) => {
-  self.restaurant.reviews = reviews;
-
-  if (error) {
-    console.log(`Error fetching reviews for ${restaurant.name}:`, error);
-  }
-
-  const CONTAINER = document.getElementById('reviews__container');
-  const TITLE = document.createElement('h3');
-  TITLE.className = 'reviews__heading';
-  TITLE.innerHTML = 'Reviews';
-  CONTAINER.appendChild(TITLE);
-
-  if (!reviews) {
-    const NO_REVIEWS = document.createElement('p');
-    NO_REVIEWS.innerHTML = 'No reviews yet!';
-    CONTAINER.appendChild(NO_REVIEWS);
-    return;
-  }
-  const UL = document.getElementById('reviews__list');
-
-  reviews.forEach(review => {
-    UL.appendChild(createReviewHTML(review));
-  });
-
-  CONTAINER.appendChild(UL);
+const resetForm = () => {
+  const form = document.getElementById('review-form');
+  form.reset();
 };
 
 /**
- * Create HTML for offline reviews and add them to the webpage.
+ * Submit new review
  */
-const fillOfflineReviewsHTML = (error, reviews) => {
-  if (!reviews) return;
+const submitReview = () => {
+  // Check validity of form: if true, continue with submission; if false, abort
+  if (formIsValid() === false) {return;}
 
-  self.restaurant.offline_reviews = reviews;
+  event.preventDefault();
 
-  if (error) {
-    console.log(`Error fetching offline reviews for ${restaurant.name}:`, error);
+  console.log('Submitting review...');
+
+  // Save input fields in review object
+  const review = {
+    name: document.getElementById('review-author').value,
+    rating: parseInt(document.querySelector('input[name="rating"]:checked').value.charAt(0)),
+    comments: document.getElementById('review-comments').value,
+    restaurant_id: parseInt(getParameterByName('id')),
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  if (navigator.onLine) {
+    // If online, add review to database
+    DBHelper.addReviewToDatabase(review);
+    // Add new review to UI
+    addNewReviewToUI(review, 'online');
+    // Notify user
+    updateFormAlert('Your review has been successfully submitted!', 'success');
+  } else {
+    // If offline, save offline review so that it can be saved to database once back online
+    DBHelper.saveOfflineReview(review);
+    // Add new review to UI
+    addNewReviewToUI(review, 'offline');
+    // Notify user
+    updateFormAlert('You are offline. Your review has been saved and will be submitted once you are back online.', 'offline');
   }
 
-  const UL = document.getElementById('reviews__list');
+  // Reset form after submission
+  resetForm();
+};
 
-  if (Array.isArray(reviews)) {
-    reviews.forEach(review => {
-      UL.appendChild(createReviewHTML(review.data));
-    })
-  } else {
-    UL.appendChild(createReviewHTML(review.data));
+/**
+ * Update alert in review form
+ */
+const updateFormAlert = (newValue, newClass) => {
+  const formAlert = document.getElementById('form-alert');
+  formAlert.innerHTML = newValue;
+  formAlert.setAttribute('class', `form-alert-${newClass}`);
+};
+
+/* ------------------ Validity checks on form submission ----------------- */
+/**
+ * Checks validity of form
+ */
+const formIsValid = () => {
+  // If all input fields are valid, return true (to continue review submission)
+  if (allInputIsValid()) {
+    return true;
+  }
+
+  // Handle invalid input
+  if (!nameInputIsValid() && !commentsInputIsValid()) { // Invalid name and comments input
+    updateFormAlert('Please provide a valid name (3-30 characters) and a valid comment for the restaurant (5-900 characters).', 'error');
+  }
+  else if (!nameInputIsValid()) { // Invalid name input only
+    updateFormAlert('Please provide a valid name (3-30 characters).', 'error');
+  }
+  else if (!commentsInputIsValid()) { // Invalid comments input only
+    updateFormAlert('Please provide a valid comment (5-900 characters).', 'error');
+  }
+
+  // If any of the input fields is invalid, return false (to abort review submission)
+  console.log('Review submission aborted due to invalid input field(s).');
+  return false;
+};
+
+/**
+ * Check validity of all inputs
+ */
+function allInputIsValid() {
+  if (nameInputIsValid() && commentsInputIsValid()) {return true;}
+}
+
+/**
+ * Check validity of comments input in review form
+ */
+function commentsInputIsValid() {
+  const commentsInput = document.getElementById('review-comments').value;
+  if (commentsInput.length >= 5 && commentsInput.length <= 900) {return true;}
+}
+
+/**
+ * Check validity of name input in review form
+ */
+function nameInputIsValid() {
+  const nameInput = document.getElementById('review-author').value;
+  if (nameInput.length >= 3 && nameInput.length <= 30) {return true;}
+}
+
+/* ---------------------------- Updates to UI ---------------------------- */
+/**
+ * Add new review to UI.
+ */
+const addNewReviewToUI = (review, status) => {
+  const UL = document.getElementById('reviews__list');
+  UL.appendChild(createReviewHTML(review));
+
+  if (status === 'offline') {
+    UL.lastChild.classList.add('offline-review');
   }
 };
 
@@ -371,126 +441,62 @@ const createReviewHTML = (review) => {
 };
 
 /**
- * Add new review to UI.
+ * Create HTML for offline reviews and add them to the webpage.
  */
-const addNewReviewToUI = (review, status) => {
+const fillOfflineReviewsHTML = (error, reviews) => {
+  if (!reviews) return;
+
+  self.restaurant.offline_reviews = reviews;
+
+  if (error) {
+    console.log(`Error fetching offline reviews for ${restaurant.name}:`, error);
+  }
+
   const UL = document.getElementById('reviews__list');
-  UL.appendChild(createReviewHTML(review));
 
-  if (status === 'offline') {
-    UL.lastChild.classList.add('offline-review');
-  }
-};
-
-/**
- * Submit new review
- */
-const submitReview = () => {
-  // Check validity of form: if true, continue with submission; if false, abort
-  if (isFormValid() === false) {return;}
-
-  event.preventDefault();
-
-  console.log('Submitting review...');
-
-  // Save input fields in review object
-  const review = {
-    name: document.getElementById('review-author').value,
-    rating: parseInt(document.querySelector('input[name="rating"]:checked').value.charAt(0)),
-    comments: document.getElementById('review-comments').value,
-    restaurant_id: parseInt(getParameterByName('id')),
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  };
-
-  if (navigator.onLine) {
-    // If online, add review to database
-    DBHelper.addReviewToDatabase(review);
-    // Add new review to UI
-    addNewReviewToUI(review, 'online');
-    // Notify user
-    updateFormAlert('Your review has been successfully submitted!', 'success');
+  if (Array.isArray(reviews)) {
+    reviews.forEach(review => {
+      UL.appendChild(createReviewHTML(review.data));
+    })
   } else {
-    // If offline, save offline review so that it can be saved to database once back online
-    DBHelper.saveOfflineReview(review);
-    // Add new review to UI
-    addNewReviewToUI(review, 'offline');
-    // Notify user
-    updateFormAlert('You are offline. Your review has been saved and will be submitted once you are back online.', 'offline');
+    UL.appendChild(createReviewHTML(review.data));
   }
-
-  // Reset form after submission
-  resetForm();
 };
 
 /**
- * Reset all input fields in review form
+ * Create all reviews HTML and add them to the webpage.
  */
-const resetForm = () => {
-  const form = document.getElementById('review-form');
-  form.reset();
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log(`Error fetching reviews for ${restaurant.name}:`, error);
+  }
+
+  const CONTAINER = document.getElementById('reviews__container');
+  const TITLE = document.createElement('h3');
+  TITLE.className = 'reviews__heading';
+  TITLE.innerHTML = 'Reviews';
+  CONTAINER.appendChild(TITLE);
+
+  if (!reviews) {
+    const NO_REVIEWS = document.createElement('p');
+    NO_REVIEWS.innerHTML = 'No reviews yet!';
+    CONTAINER.appendChild(NO_REVIEWS);
+    return;
+  }
+  const UL = document.getElementById('reviews__list');
+
+  reviews.forEach(review => {
+    UL.appendChild(createReviewHTML(review));
+  });
+
+  CONTAINER.appendChild(UL);
 };
 
-/**
- * Checks validity of form
- */
-const isFormValid = () => {
-  // If all input fields are valid, return true (to continue review submission)
-  if (allInputIsValid()) {
-    return true;
-  }
-
-  // Handle invalid input
-  if (!nameInputIsValid() && !commentsInputIsValid()) { // Invalid name and comments input
-    updateFormAlert('Please provide a valid name (3-30 characters) and a valid comment for the restaurant (5-900 characters).', 'error');
-  }
-  else if (!nameInputIsValid()) { // Invalid name input only
-    updateFormAlert('Please provide a valid name (3-30 characters).', 'error');
-  }
-  else if (!commentsInputIsValid()) { // Invalid comments input only
-    updateFormAlert('Please provide a valid comment (5-900 characters).', 'error');
-  }
-
-  // If any of the input fields is invalid, return false (to abort review submission)
-  console.log('Review submission aborted due to invalid input field(s).');
-  return false;
-};
-
-/**
- * Update alert in review form
- */
-const updateFormAlert = (newValue, newClass) => {
-  const formAlert = document.getElementById('form-alert');
-  formAlert.innerHTML = newValue;
-  formAlert.setAttribute('class', `form-alert-${newClass}`);
-};
-
-/**
- * Check validity of name input in review form
- */
-function nameInputIsValid() {
-  const nameInput = document.getElementById('review-author').value;
-  if (nameInput.length >= 3 && nameInput.length <= 30) {return true;}
-}
-
-/**
- * Check validity of comments input in review form
- */
-function commentsInputIsValid() {
-  const commentsInput = document.getElementById('review-comments').value;
-  if (commentsInput.length >= 5 && commentsInput.length <= 900) {return true;}
-}
-
-/**
- * Check validity of all inputs
- */
-function allInputIsValid() {
-  if (nameInputIsValid() && commentsInputIsValid()) {return true;}
-}
-
-/* ============================================================================ */
-/*  - SERVICE WORKER                                                            */
-/* ============================================================================ */
+/* ========================================================================== */
+/*                              SERVICE WORKER                             */
+/* ======================================================================= */
 /**
  * Register service worker for offline-first
  */

@@ -1,8 +1,8 @@
 const PRECACHE = 'restaurant-reviews-v1';
 
-/* ==================================== INSTALL ==================================== */
-/*              When service worker installs, store key assets in cache              */
-/* --------------------------------------------------------------------------------- */
+/* =============================== INSTALL =============================== */
+/*         When service worker installs, store key assets in cache         */
+/* ----------------------------------------------------------------------- */
 self.addEventListener('install', event => {
   console.log('Installing the service worker...');
 
@@ -13,9 +13,9 @@ self.addEventListener('install', event => {
   }));
 });
 
-/* =================================== ACTIVATE ==================================== */
-/*           When service worker activates, check for old cache and remove           */
-/* --------------------------------------------------------------------------------- */
+/* ============================== ACTIVATE =============================== */
+/*      When service worker activates, check for old cache and remove      */
+/* ----------------------------------------------------------------------- */
 self.addEventListener('activate', event => {
   console.log('Activating the service worker...');
 
@@ -23,9 +23,10 @@ self.addEventListener('activate', event => {
   event.waitUntil(deleteOldCache());
 });
 
-/* ===================================== FETCH ===================================== */
-/* Check cache for resource; if not available, fetch from network and store in cache */
-/* --------------------------------------------------------------------------------- */
+/* ================================ FETCH ================================ */
+/*                        Check cache for resource                         */
+/*         If not available, fetch from network and store in cache         */
+/* ----------------------------------------------------------------------- */
 self.addEventListener('fetch', event => {
   console.log('The service worker is serving the assets...');
 
@@ -38,8 +39,8 @@ self.addEventListener('fetch', event => {
   }));
 });
 
-/* =================================== FUNCTIONS =================================== */
-/* --------------------------------------------------------------------------------- */
+/* ============================== FUNCTIONS ============================== */
+/* ----------------------------------------------------------------------- */
 /**
  * Check cache first; then fetch from network and update cache.
  */
@@ -91,7 +92,8 @@ const precache = () => {
       '/scripts/main.js',
       '/scripts/restaurant_info.js',
       '/scripts/dbhelper.js',
-      '/styles/styles.css'
+      '/styles/styles.css',
+      'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
     ]);
   });
 };

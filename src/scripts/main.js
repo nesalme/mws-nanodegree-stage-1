@@ -13,9 +13,9 @@ const URLS = {
 
 let restaurants, neighborhoods, cuisines, map, markers, mapListener;
 
-/* ============================================================================ */
-/*  - GLOBAL EVENTS                                                             */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                              GLOBAL EVENTS                              */
+/* ======================================================================= */
 // Fetch neighborhoods and cuisines as soon as the page is loaded.
 document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
@@ -60,36 +60,10 @@ window.initMap = () => {
 // Expose updateRestaurants() function to window/global scope
 window.updateRestaurants = updateRestaurants;
 
-/* ============================================================================ */
-/*  - RESTAURANTS                                                               */
-/* ============================================================================ */
-/**
- * Fetch all neighborhoods and set their HTML.
- */
-const fetchNeighborhoods = () => {
-  DBHelper.fetchNeighborhoods((error, neighborhoods) => {
-    if (error) { // Got an error
-      console.error(error);
-    } else {
-      self.neighborhoods = neighborhoods;
-      fillNeighborhoodsHTML();
-    }
-  });
-};
-
-/**
- * Set neighborhoods HTML.
- */
-const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
-  const SELECT = document.getElementById('filter__neighborhood');
-  neighborhoods.forEach(neighborhood => {
-    const OPTION = document.createElement('option');
-    OPTION.innerHTML = neighborhood;
-    OPTION.value = neighborhood;
-    SELECT.append(OPTION);
-  });
-};
-
+/* ======================================================================= */
+/*                               RESTAURANTS                               */
+/* ======================================================================= */
+/* ---------------------- Interactions with database --------------------- */
 /**
  * Fetch all cuisines and set their HTML.
  */
@@ -105,72 +79,20 @@ const fetchCuisines = () => {
 };
 
 /**
- * Set cuisines HTML.
+ * Fetch all neighborhoods and set their HTML.
  */
-const fillCuisinesHTML = (cuisines = self.cuisines) => {
-  const SELECT = document.getElementById('filter__cuisine');
-
-  cuisines.forEach(cuisine => {
-    const OPTION = document.createElement('option');
-    OPTION.innerHTML = cuisine;
-    OPTION.value = cuisine;
-    SELECT.append(OPTION);
-  });
-};
-
-/**
- * Update page and map for current restaurants.
- */
-const updateRestaurants = () => {
-  const C_SELECT = document.getElementById('filter__cuisine');
-  const N_SELECT = document.getElementById('filter__neighborhood');
-
-  const C_INDEX = C_SELECT.selectedIndex;
-  const N_INDEX = N_SELECT.selectedIndex;
-
-  const CUISINE = C_SELECT[C_INDEX].value;
-  const NEIGHBORHOOD = N_SELECT[N_INDEX].value;
-
-  DBHelper.fetchRestaurantByCuisineAndNeighborhood(CUISINE, NEIGHBORHOOD, (error, restaurants) => {
-    if (error) { // Got an error!
+const fetchNeighborhoods = () => {
+  DBHelper.fetchNeighborhoods((error, neighborhoods) => {
+    if (error) { // Got an error
       console.error(error);
     } else {
-      resetRestaurants(restaurants);
-      fillRestaurantsHTML();
+      self.neighborhoods = neighborhoods;
+      fillNeighborhoodsHTML();
     }
-  })
-};
-
-/**
- * Clear current restaurants, their HTML and remove their map markers.
- */
-const resetRestaurants = (restaurants) => {
-  // Remove all restaurants
-  self.restaurants = [];
-  const UL = document.getElementById('restaurants__list');
-  UL.innerHTML = '';
-
-  // Remove all map markers
-  if (self.markers === undefined) {
-    self.markers = [];
-  }
-
-  self.markers.forEach(m => m.setMap(null));
-  self.markers = [];
-  self.restaurants = restaurants;
-};
-
-/**
- * Create all restaurants HTML and add them to the webpage.
- */
-const fillRestaurantsHTML = (restaurants = self.restaurants) => {
-  const UL = document.getElementById('restaurants__list');
-  restaurants.forEach(restaurant => {
-    UL.append(createRestaurantHTML(restaurant));
   });
-  addMarkersToMap();
 };
 
+/* ---------------------------- Updates to UI ---------------------------- */
 /**
  * Create HTML for each restaurant.
  */
@@ -215,7 +137,6 @@ const createRestaurantHTML = (restaurant) => {
   CARD.append(PICTURE);
 
   // Add clickable icon to (un)favorite restaurant
-  // (icon within anchor element to improve user interaction - ie, increased clickable area)
   const FAV_BUTTON = document.createElement('button');
   FAV_BUTTON.className = 'restaurant__favorite-btn';
 
@@ -276,28 +197,93 @@ const createRestaurantHTML = (restaurant) => {
   return LI;
 };
 
-/* ============================================================================ */
-/*  - FAVORITES                                                                 */
-/* ============================================================================ */
 /**
-  * Select appropriate (un)favorite icon depending on database value
-  */
-const selectIcon = (restaurant) => {
-  let icon;
+ * Set cuisines HTML.
+ */
+const fillCuisinesHTML = (cuisines = self.cuisines) => {
+  const SELECT = document.getElementById('filter__cuisine');
 
-  if (DBHelper.hasOfflineFavorite(restaurant) === true) {
-    icon = DBHelper.isOfflineFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
-  } else {
-    icon = DBHelper.isFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
-  }
-
-  return icon;
+  cuisines.forEach(cuisine => {
+    const OPTION = document.createElement('option');
+    OPTION.innerHTML = cuisine;
+    OPTION.value = cuisine;
+    SELECT.append(OPTION);
+  });
 };
 
 /**
+ * Set neighborhoods HTML.
+ */
+const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
+  const SELECT = document.getElementById('filter__neighborhood');
+  neighborhoods.forEach(neighborhood => {
+    const OPTION = document.createElement('option');
+    OPTION.innerHTML = neighborhood;
+    OPTION.value = neighborhood;
+    SELECT.append(OPTION);
+  });
+};
+
+/**
+ * Create all restaurants HTML and add them to the webpage.
+ */
+const fillRestaurantsHTML = (restaurants = self.restaurants) => {
+  const UL = document.getElementById('restaurants__list');
+  restaurants.forEach(restaurant => {
+    UL.append(createRestaurantHTML(restaurant));
+  });
+  addMarkersToMap();
+};
+
+/**
+ * Clear current restaurants, their HTML and remove their map markers.
+ */
+const resetRestaurants = (restaurants) => {
+  // Remove all restaurants
+  self.restaurants = [];
+  const UL = document.getElementById('restaurants__list');
+  UL.innerHTML = '';
+
+  // Remove all map markers
+  if (self.markers === undefined) {
+    self.markers = [];
+  }
+
+  self.markers.forEach(m => m.setMap(null));
+  self.markers = [];
+  self.restaurants = restaurants;
+};
+
+/**
+ * Update page and map for current restaurants.
+ */
+const updateRestaurants = () => {
+  const C_SELECT = document.getElementById('filter__cuisine');
+  const N_SELECT = document.getElementById('filter__neighborhood');
+
+  const C_INDEX = C_SELECT.selectedIndex;
+  const N_INDEX = N_SELECT.selectedIndex;
+
+  const CUISINE = C_SELECT[C_INDEX].value;
+  const NEIGHBORHOOD = N_SELECT[N_INDEX].value;
+
+  DBHelper.fetchRestaurantByCuisineAndNeighborhood(CUISINE, NEIGHBORHOOD, (error, restaurants) => {
+    if (error) { // Got an error!
+      console.error(error);
+    } else {
+      resetRestaurants(restaurants);
+      fillRestaurantsHTML();
+    }
+  })
+};
+
+/* ======================================================================= */
+/*                                FAVORITES                                */
+/* ======================================================================= */
+/**
   * Handle click on a restaurant's favorite icon
   */
-const handleFavoriteClick = (event, restaurant) => {
+ const handleFavoriteClick = (event, restaurant) => {
   const newFavoriteStatus = (restaurant.is_favorite == true) ? false : true;
 
   if (!navigator.onLine) {
@@ -316,6 +302,21 @@ const handleFavoriteClick = (event, restaurant) => {
 };
 
 /**
+  * Select appropriate (un)favorite icon depending on database value
+  */
+const selectIcon = (restaurant) => {
+  let icon;
+
+  if (DBHelper.hasOfflineFavorite(restaurant) === true) {
+    icon = DBHelper.isOfflineFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  } else {
+    icon = DBHelper.isFavorite(restaurant) ? URLS.favoriteIcon : URLS.notFavoriteIcon;
+  }
+
+  return icon;
+};
+
+/**
   * Toggle favorite icon
   */
 const toggleFavoriteIcon = (target, id) => {
@@ -326,9 +327,9 @@ const toggleFavoriteIcon = (target, id) => {
   ICON_NODE.setAttributeNS(URLS.xlink, 'xlink:href', NEW_ICON);
 };
 
-/* ============================================================================ */
-/*  - MAP                                                                       */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                                   MAP                                   */
+/* ======================================================================= */
 /**
  * Add markers for current restaurants to the map.
  */
@@ -356,15 +357,15 @@ const improveMapAccessibility = () => {
 };
 
 /**
-  * Toggle map on click
-  */
+ * Toggle map on click
+ */
 const toggleMap = () => {
   MAP_DOM.style.display = MAP_DOM.style.display === 'block' ? 'none' : 'block';
 };
 
-/* ============================================================================ */
-/*  - SERVICE WORKER                                                            */
-/* ============================================================================ */
+/* ======================================================================= */
+/*                              SERVICE WORKER                             */
+/* ======================================================================= */
 /**
  * Register service worker for offline-first
  */
