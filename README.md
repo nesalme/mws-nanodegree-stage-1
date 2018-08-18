@@ -1,8 +1,8 @@
 # Mobile Web Specialist Certification Course
 ---
-#### _Three Stage Course Material Project - Restaurant Reviews_
+#### _Three Stage Project - Restaurant Reviews_
 
-## Project Overview: Stage 2
+## Project Overview
 
 For the **Restaurant Reviews** project, we were asked to convert a static webpage to a mobile-ready web application, in three distinct stages.
 
@@ -26,15 +26,24 @@ For the **Restaurant Reviews** project, we were asked to convert a static webpag
 - [x] JSON responses are cached using the IndexedDB API, as part of our offline-first strategy
 - [x] Lighthouse reports scores of 70+ in Performance and 90+ in Progressive Web Apps and Accessibility
 
-![alt text](lighthouse-audit_stage2.png "Lighthouse Audit scores at end of Stage 2")
+### Stage 3
+
+For **Stage Three**, we add new functionality that allows users to mark restaurants as favorites and leave reviews, even when offline:
+
+- [x] users can mark restaurants as favorites
+- [x] users can create reviews, even while offline
+- [x] the application notifies users that they are not online and saves the users' data to submit automatically when reconnected (deferring updates)
+- [x] Lighthouse reports scores of 90+ in Performance, Progressive Web Apps and Accessibility
+
+![alt text](lighthouse-audit_stage3.png "Lighthouse Audit scores at end of Stage 3")
 
 ## Working on the project
 
-Because Stage 2 uses a development server (instead of simply sourcing restaurant data locally), we will need to run two separate servers in parallel.
+The project uses a Node development server which will need to be run in parallel so the app can access its data.
 
 ### Connect to the development server
 
-1. Fork and clone the [development server repository](https://github.com/udacity/mws-restaurant-stage-2) and follow the instructions on the repository to set it up on your local machine.
+1. Fork and clone the [development server repository](https://github.com/udacity/mws-restaurant-stage-3) and follow the instructions on the repository to set it up on your local machine.
 
 2. Once it's been installed, simply run `node server` in the command line to spin up the development server (by default, on port 1337).
 

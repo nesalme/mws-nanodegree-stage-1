@@ -39,9 +39,22 @@
   <main class="restaurant__main">
     <section class="restaurant-details">
       <h2 class="restaurant-details__name" id="restaurant-details__name"></h2>
-      <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
-      <p id="restaurant-details__cuisine" class="restaurant-details__cuisine"></p>
+
+      <div class="restaurant-details__image-box">
+        <button class="restaurant__favorite-btn" id="restaurant__favorite-btn">
+          <svg class="restaurant__favorite" id="restaurant__favorite" aria-labelledby="restaurant__favorite-title" aria-describedby="restaurant__favorite-desc" role="presentation">
+            <title id="restaurant__favorite-title"></title>
+            <desc id="restaurant__favorite-desc"></desc>
+            <use id="restaurant__favorite-use"></use>
+          </svg>
+        </button>
+
+        <picture class="restaurant-details__picture" id="restaurant-details__picture"></picture>
+        <p class="restaurant-details__cuisine" id="restaurant-details__cuisine"></p>
+      </div>
+
       <address class="restaurant-details__address" id="restaurant-details__address"></address>
+
       <div class="opening-hours">
         <h3 class="opening-hours__heading" id="opening-hours__heading">Opening Hours</h3>
         <table class="opening-hours__table" id="opening-hours__table" aria-labelledby="opening-hours__heading"></table>
@@ -52,8 +65,62 @@
       <div class="restaurant-location__map" id="map" role="application"></div>
     </aside>
 
-    <section class="reviews" id="reviews">
+    <section class="reviews__container" id="reviews__container">
       <ul class="reviews__list" id="reviews__list"></ul>
+    </section>
+
+    <section class="review__submission">
+      <h3 class="reviews__heading" id="review-form__heading">Add Review</h3>
+
+      <form class="review-form" id="review-form" method="post" aria-labelledby="review-form__heading" role="form">
+        <div class="review-form__author">
+          <label class="review-form__label" for="review-author">Name</label>
+          <input type="text" name="name" id="review-author" class="review-form__input" placeholder="Write your name here..." maxlength="30" minlength="3" required aria-required="true">
+        </div>
+
+        <div class="review-form__rating">
+          <h4 class="review-form__label" id="review-form__rating-group">Rating</h4>
+          <div class="rating__group" role="radiogroup" aria-labelledby="review-form__rating-group">
+            <div class="rating__item">
+              <label for="review-star-1" class="rating-label">★</label>
+              <input type="radio" name="rating" id="review-star-1" class="rating-star" aria-checked="false" required aria-required="true" value="1 star" tabindex="-1" aria-label="1 star">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-2" class="rating-label">★★</label>
+              <input type="radio" name="rating" id="review-star-2" class="rating-star" aria-checked="false" required aria-required="true" value="2 stars" tabindex="-1" aria-label="2 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-3" class="rating-label">★★★</label>
+              <input type="radio" name="rating" id="review-star-3" class="rating-star" aria-checked="false" required aria-required="true" value="3 stars" tabindex="-1" aria-label="3 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-4" class="rating-label">★★★★</label>
+              <input type="radio" name="rating" id="review-star-4" class="rating-star" aria-checked="false" required aria-required="true" value="4 stars" tabindex="-1" aria-label="4 stars">
+            </div>
+
+            <div class="rating__item">
+              <label for="review-star-5" class="rating-label">★★★★★</label>
+              <input type="radio" name="rating" id="review-star-5" class="rating-star" checked aria-checked="true" required aria-required="true" value="5 stars" tabindex="0" aria-label="5 stars">
+            </div>
+          </div>
+        </div>
+
+        <div class="review-form__comments">
+          <label for="review-comments" class="review-form__label">Comments</label>
+          <textarea name="comments" id="review-comments" class="review-form__textarea" placeholder="Write your review here..." required aria-required="true" minlength="5" maxlength="900" aria-multiline="true"></textarea>
+        </div>
+
+        <div class="review-form__footer">
+          <div class="form-alert" id="form-alert" aria-live="polite"></div>
+
+          <div class="review-form__submit">
+            <button type="submit" class="submit-btn" id="review-submit-btn" aria-describedby="form-alert">Submit</button>
+          </div>
+        </div>
+      </form>
     </section>
   </main>
 
