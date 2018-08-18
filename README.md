@@ -26,17 +26,16 @@ For the **Restaurant Reviews** project, we were asked to convert a static webpag
 - [x] JSON responses are cached using the IndexedDB API, as part of our offline-first strategy
 - [x] Lighthouse reports scores of 70+ in Performance and 90+ in Progressive Web Apps and Accessibility
 
-![alt text](lighthouse-audit_stage2.png "Lighthouse Audit scores at end of Stage 2")
-
-
 ### Stage 3
 
 For **Stage Three**, we add new functionality that allows users to mark restaurants as favorites and leave reviews, even when offline:
 
-- [ ] users can mark restaurants as favorites
-- [ ] users can create reviews, even while offline
-- [ ] the application notifies users that they are not online and saves the users' data to submit automatically when reconnected (deferring updates)
-- [ ] Lighthouse reports scores of 90+ in Performance, Progressive Web Apps and Accessibility
+- [x] users can mark restaurants as favorites
+- [x] users can create reviews, even while offline
+- [x] the application notifies users that they are not online and saves the users' data to submit automatically when reconnected (deferring updates)
+- [x] Lighthouse reports scores of 90+ in Performance, Progressive Web Apps and Accessibility
+
+![alt text](lighthouse-audit_stage3.png "Lighthouse Audit scores at end of Stage 3")
 
 ## Working on the project
 
